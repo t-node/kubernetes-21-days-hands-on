@@ -1,0 +1,80 @@
+# A second scheduler needs its own identity and the same permissions the default
+# scheduler has: watch pods/nodes, create Binding objects, emit events.
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: my-scheduler
+  namespace: kube-system
+---
+# Reuse the built-in role the default scheduler uses.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: my-scheduler-as-kube-scheduler
+subjects:
+  - kind: ServiceAccount
+    name: my-scheduler
+    namespace: kube-system
+roleRef:
+  kind: ClusterRole
+  name: system:kube-scheduler
+  apiGroup: rbac.authorization.k8s.io
+---
+# The scheduler also reads the extension-apiserver auth ConfigMap on startup.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: my-scheduler-as-volume-scheduler
+subjects:
+  - kind: ServiceAccount
+    name: my-scheduler
+    namespace: kube-system
+roleRef:
+  kind: ClusterRole
+  name: system:volume-scheduler
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: my-scheduler-extension-apiserver-authentication-reader
+  namespace: kube-system
+subjects:
+  - kind: ServiceAccount
+    name: my-scheduler
+    namespace: kube-system
+roleRef:
+  kind: Role
+  name: extension-apiserver-authentication-reader
+  apiGroup: rbac.authorization.k8s.io
+---
+# system:kube-scheduler does not grant Lease access under a NON-default name,
+# nor the events/endpoints this deployment needs. Add exactly what is missing.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: my-scheduler-extras
+rules:
+  - apiGroups: ["coordination.k8s.io"]
+    resources: ["leases"]
+    verbs: ["create", "get", "update", "list", "watch"]
+  - apiGroups: ["", "events.k8s.io"]
+    resources: ["events"]
+    verbs: ["create", "patch", "update"]
+  - apiGroups: ["storage.k8s.io"]
+    resources: ["storageclasses", "csinodes", "csidrivers", "csistoragecapacities"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: my-scheduler-extras
+subjects:
+  - kind: ServiceAccount
+    name: my-scheduler
+    namespace: kube-system
+roleRef:
+  kind: ClusterRole
+  name: my-scheduler-extras
+  apiGroup: rbac.authorization.k8s.io

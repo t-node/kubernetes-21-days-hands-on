@@ -1,0 +1,57 @@
+# REFERENCE ONLY -- not applied by the lab.
+#
+# This is the MODERN answer to "I need different scheduling behaviour":
+# ONE scheduler binary hosting SEVERAL profiles. Each profile answers to its own
+# schedulerName, but they share one process, one cache and one view of the
+# cluster -- so they cannot race each other onto the same node the way separate
+# scheduler binaries can.
+#
+# Kubernetes 1.18+.
+apiVersion: kubescheduler.config.k8s.io/v1
+kind: KubeSchedulerConfiguration
+leaderElection:
+  leaderElect: true
+profiles:
+
+  # 1. The normal one, untouched.
+  - schedulerName: default-scheduler
+
+  # 2. Ignores taints. Pods naming this land anywhere, including tainted nodes,
+  #    without carrying tolerations.
+  #    TaintToleration sits at the `filter` extension point (see README 6.6).
+  - schedulerName: no-taints-scheduler
+    plugins:
+      filter:
+        disabled:
+          - name: TaintToleration
+
+  # 3. Skips scoring entirely -- takes the first node that survives filtering.
+  #    Faster, and deliberately dumber. Note score plugins never REJECT a node,
+  #    so removing them cannot make a pod unschedulable; it only removes ranking.
+  - schedulerName: no-scoring-scheduler
+    plugins:
+      preScore:
+        disabled:
+          - name: '*'
+      score:
+        disabled:
+          - name: '*'
+
+  # 4. Bin-packing: prefer the FULLEST node instead of the emptiest.
+  #    Same plugin (NodeResourcesFit) at the same point, different arguments --
+  #    this is why plugins take pluginConfig separately from enable/disable.
+  - schedulerName: bin-packing-scheduler
+    pluginConfig:
+      - name: NodeResourcesFit
+        args:
+          scoringStrategy:
+            type: MostAllocated
+
+  # 5. No preemption. DefaultPreemption lives at `postFilter` -- the stage that
+  #    runs only when filtering found nothing. Disable it and a pod that does not
+  #    fit simply waits, whatever its priority class says.
+  - schedulerName: never-preempts-scheduler
+    plugins:
+      postFilter:
+        disabled:
+          - name: DefaultPreemption

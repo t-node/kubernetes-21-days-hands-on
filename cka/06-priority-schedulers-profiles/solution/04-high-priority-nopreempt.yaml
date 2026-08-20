@@ -1,0 +1,17 @@
+# Same size, same value (1000000), but preemptionPolicy: Never.
+# Result: stays Pending with FailedScheduling. Nobody is evicted.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: patient-app
+  namespace: cka06
+  labels: {app: patient}
+spec:
+  priorityClassName: patient-priority
+  containers:
+    - name: app
+      image: nginx:alpine
+      resources:
+        requests:
+          cpu: "1200m"
+          memory: "64Mi"

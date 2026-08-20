@@ -1,0 +1,24 @@
+# Fills a node with cheap, evictable pods so preemption has something to remove.
+# CPU requests are deliberately large relative to a kind node.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: filler
+  namespace: cka06
+spec:
+  replicas: 6
+  selector:
+    matchLabels: {app: filler}
+  template:
+    metadata:
+      labels: {app: filler}
+    spec:
+      priorityClassName: low-priority
+      terminationGracePeriodSeconds: 5
+      containers:
+        - name: pause
+          image: registry.k8s.io/pause:3.9
+          resources:
+            requests:
+              cpu: "600m"
+              memory: "32Mi"

@@ -1,0 +1,8 @@
+# With this applied, every pod that names no class gets value 500 at admission.
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: cluster-default
+value: 500
+globalDefault: true
+description: "Applied to any pod that does not set priorityClassName."

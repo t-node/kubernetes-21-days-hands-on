@@ -1,0 +1,68 @@
+# A SECOND scheduler binary, running as an ordinary Deployment.
+# It is the same kube-scheduler image the control plane uses -- only the
+# configuration differs.
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: my-scheduler-config
+  namespace: kube-system
+data:
+  my-scheduler-config.yaml: |
+    apiVersion: kubescheduler.config.k8s.io/v1
+    kind: KubeSchedulerConfiguration
+    profiles:
+      - schedulerName: my-scheduler
+    leaderElection:
+      # Only ONE replica, so leader election is pure overhead. Set true only when
+      # you run several COPIES of this same scheduler for high availability.
+      leaderElect: false
+    # clientConnection.kubeconfig omitted on purpose: running inside a pod with a
+    # ServiceAccount, the scheduler picks up in-cluster config automatically.
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-scheduler
+  namespace: kube-system
+  labels: {app: my-scheduler}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: my-scheduler}
+  template:
+    metadata:
+      labels: {app: my-scheduler}
+    spec:
+      serviceAccountName: my-scheduler
+      # Sit on the control plane next to the default scheduler.
+      nodeSelector:
+        node-role.kubernetes.io/control-plane: ""
+      tolerations:
+        - key: node-role.kubernetes.io/control-plane
+          operator: Exists
+          effect: NoSchedule
+      containers:
+        - name: kube-scheduler
+          # MUST match your cluster version. Check: kubectl version --short
+          image: registry.k8s.io/kube-scheduler:v1.31.4
+          command:
+            - /usr/local/bin/kube-scheduler
+            - --config=/etc/kubernetes/my-scheduler/my-scheduler-config.yaml
+            - --v=2
+          volumeMounts:
+            - name: config
+              mountPath: /etc/kubernetes/my-scheduler
+              readOnly: true
+          resources:
+            requests: {cpu: "50m", memory: "64Mi"}
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 10259
+              scheme: HTTPS
+            initialDelaySeconds: 15
+      volumes:
+        - name: config
+          configMap:
+            name: my-scheduler-config

@@ -1,0 +1,9 @@
+# DELIBERATELY INVALID. Only one PriorityClass may set globalDefault: true.
+# Expected: admission error while 05-global-default.yaml exists.
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: another-default
+value: 700
+globalDefault: true
+description: "Rejected -- a second cluster default is a contradiction."

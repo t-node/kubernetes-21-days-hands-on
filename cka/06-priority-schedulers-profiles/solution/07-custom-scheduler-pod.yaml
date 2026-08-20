@@ -1,0 +1,14 @@
+# Names a scheduler. Until one answering to `my-scheduler` runs, this pod is
+# Pending with NO EVENTS -- nothing is watching for it.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: uses-custom-scheduler
+  namespace: cka06
+spec:
+  schedulerName: my-scheduler
+  containers:
+    - name: app
+      image: nginx:alpine
+      resources:
+        requests: {cpu: "50m", memory: "32Mi"}

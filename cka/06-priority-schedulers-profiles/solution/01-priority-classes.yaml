@@ -1,0 +1,27 @@
+# PriorityClass is CLUSTER-SCOPED -- notice there is no `namespace:` anywhere.
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: low-priority
+value: 1000
+globalDefault: false
+description: "Batch and background work. First to be evicted."
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: high-priority
+value: 1000000
+globalDefault: false
+# preemptionPolicy omitted == PreemptLowerPriority == this pod WILL evict others.
+description: "Critical workloads. May preempt lower-priority pods."
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: patient-priority
+value: 1000000
+globalDefault: false
+preemptionPolicy: Never          # jumps the queue, never evicts anyone
+description: "High queue position, but waits for capacity instead of taking it."

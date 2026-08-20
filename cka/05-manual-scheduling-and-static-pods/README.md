@@ -539,5 +539,4 @@ does not fit, the kubelet rejects it and nothing reschedules it.
 
 ---
 
-**Next: CKA 06 — Priority classes, multiple schedulers, scheduler profiles**
-*(not yet built — see [CURRICULUM.md](../CURRICULUM.md) for the full ordered path)*
+**Next:** [CKA 06 — Priority Classes, Multiple Schedulers and Scheduler Profiles](../06-priority-schedulers-profiles/)

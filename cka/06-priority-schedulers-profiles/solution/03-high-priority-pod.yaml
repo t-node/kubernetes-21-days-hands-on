@@ -1,0 +1,16 @@
+# Cannot fit alongside the filler pods. Default preemption policy -> evicts.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: important-app
+  namespace: cka06
+  labels: {app: important}
+spec:
+  priorityClassName: high-priority
+  containers:
+    - name: app
+      image: nginx:alpine
+      resources:
+        requests:
+          cpu: "1200m"
+          memory: "64Mi"
