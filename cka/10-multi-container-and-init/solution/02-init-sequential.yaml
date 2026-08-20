@@ -1,0 +1,19 @@
+# Pattern 2: INIT CONTAINERS, run one after another, each to completion.
+# Watch the STATUS go Init:0/2 -> Init:1/2 -> PodInitializing -> Running.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: sequential-init
+  namespace: cka10
+spec:
+  initContainers:
+    - name: step-one
+      image: busybox:1.36
+      command: ["sh", "-c", "echo 'step one: preparing'; sleep 10; echo done"]
+    - name: step-two
+      image: busybox:1.36
+      command: ["sh", "-c", "echo 'step two: migrating'; sleep 10; echo done"]
+  containers:
+    - name: app
+      image: busybox:1.36
+      command: ["sh", "-c", "echo 'app started at' $(date +%T); sleep 3600"]

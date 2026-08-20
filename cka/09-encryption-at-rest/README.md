@@ -526,4 +526,4 @@ resources:
 ---
 
 **Previous:** [CKA 08 — Commands and Arguments](../08-commands-and-arguments/)
-**Next: CKA 10 — Multi-Container Pods and Init Containers** *(not yet built — see [CURRICULUM.md](../CURRICULUM.md))*
+**Next:** [CKA 10 — Multi-Container Pods, Init Containers and Sidecars](../10-multi-container-and-init/)

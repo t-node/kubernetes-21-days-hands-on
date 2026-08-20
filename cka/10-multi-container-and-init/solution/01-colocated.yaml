@@ -1,0 +1,35 @@
+# Pattern 1: CO-LOCATED containers.
+# A writer and a web server sharing an emptyDir. Neither is guaranteed to start
+# first -- and here it does not matter, because nginx serves whatever is present
+# whenever it is asked.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: colocated
+  namespace: cka10
+  labels: {app: colocated}
+spec:
+  volumes:
+    - name: shared
+      emptyDir: {}                 # lives and dies with the pod
+  containers:
+    - name: writer
+      image: busybox:1.36
+      command:
+        - sh
+        - -c
+        - |
+          while true; do
+            echo "generated at $(date +%T) by the writer container" > /data/index.html
+            sleep 5
+          done
+      volumeMounts:
+        - name: shared
+          mountPath: /data
+    - name: web
+      image: nginx:alpine
+      volumeMounts:
+        - name: shared
+          mountPath: /usr/share/nginx/html      # SAME directory, different path
+      ports:
+        - containerPort: 80

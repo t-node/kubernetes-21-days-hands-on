@@ -1,0 +1,17 @@
+# DELIBERATELY BROKEN. `slep` is not a command.
+# Expected: Init:Error, then Init:CrashLoopBackOff, exit code 127.
+# Fix it by hand -- that is the exercise.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: orange
+  namespace: cka10
+spec:
+  initContainers:
+    - name: init-my-service
+      image: busybox:1.36
+      command: ["slep", "20"]
+  containers:
+    - name: orange-container
+      image: busybox:1.36
+      command: ["sh", "-c", "echo running; sleep 3600"]

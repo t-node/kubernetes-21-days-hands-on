@@ -1,0 +1,26 @@
+# The realistic use of an init container: do not start the app until its
+# dependency resolves. This pod stays in Init:0/1 until a Service named
+# `database` exists in the namespace.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: waits-for-db
+  namespace: cka10
+spec:
+  initContainers:
+    - name: wait-for-db
+      image: busybox:1.36
+      command:
+        - sh
+        - -c
+        - |
+          echo "waiting for the database service to resolve..."
+          until nslookup database.cka10.svc.cluster.local >/dev/null 2>&1; do
+            echo "  still no DNS record for database"
+            sleep 3
+          done
+          echo "database resolved -- releasing the app"
+  containers:
+    - name: app
+      image: busybox:1.36
+      command: ["sh", "-c", "echo 'app started at' $(date +%T); sleep 3600"]

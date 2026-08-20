@@ -1,0 +1,11 @@
+# Create this to release the pod above. A Service gets a DNS record as soon as
+# it exists -- it does not need any endpoints behind it for nslookup to succeed.
+apiVersion: v1
+kind: Service
+metadata:
+  name: database
+  namespace: cka10
+spec:
+  selector: {app: postgres}
+  ports:
+    - port: 5432
