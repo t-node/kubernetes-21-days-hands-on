@@ -1,0 +1,29 @@
+# The "other team's" namespace referenced by 10 and 11.
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cka25-data
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: data, namespace: cka25-data, labels: {app: data}}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: data}}
+  template:
+    metadata: {labels: {app: data}}
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.27-alpine
+          ports: [{containerPort: 80}]
+          command: ["sh","-c","echo DATA-NAMESPACE > /usr/share/nginx/html/index.html; exec nginx -g 'daemon off;'"]
+          resources: {requests: {cpu: "10m", memory: "16Mi"}}
+---
+apiVersion: v1
+kind: Service
+metadata: {name: data-svc, namespace: cka25-data}
+spec:
+  selector: {app: data}
+  ports: [{name: http, port: 80, targetPort: 80}]

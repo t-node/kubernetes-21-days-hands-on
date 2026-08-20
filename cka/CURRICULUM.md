@@ -27,7 +27,7 @@ column back into the 21 days when you need ground under a topic.
 ---
 ## The assignments
 
-33 assignments. **24 built, 9 to build.**
+33 assignments. **25 built, 8 to build.**
 
 
 ### Core Concepts
@@ -88,7 +88,7 @@ column back into the 21 days when you need ground under a topic.
 | 22 | [Pod Networking and CNI](22-pod-networking-and-cni/) | 209, 210, 213, 214, 215, 217, 219, 220 | CKA 21 | **built** |
 | 23 | [Service Networking](23-service-networking/) | 222, 224 | Day 06, CKA 22 | **built** |
 | 24 | [DNS and CoreDNS](24-dns-and-coredns/) | 225, 226, 228 | Day 06 | **built** |
-| 25 | Ingress and the Gateway API in Depth | 229, 233, 235, 236 | Day 20 | to build |
+| 25 | [Ingress and the Gateway API in Depth](25-ingress-gateway-in-depth/) | 229, 233, 235, 236 | Day 20 | **built** |
 
 ### Design and Install
 

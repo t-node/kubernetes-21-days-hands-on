@@ -1,0 +1,24 @@
+# The rewrite that works.
+#
+# The regex needs pathType: ImplementationSpecific -- Prefix would treat
+# `/api(/|$)(.*)` as a literal path element and never match (25.3).
+#
+# $2 is the second capture group: everything after /api/.
+#   request  /api/v1/users   ->  backend sees  /v1/users
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: rewrite-ok
+  namespace: cka25
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/use-regex: "true"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: rewrite.local
+      http:
+        paths:
+          - path: /api(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend: {service: {name: api, port: {number: 80}}}

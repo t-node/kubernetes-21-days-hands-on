@@ -1,0 +1,43 @@
+# The typed, PORTABLE equivalents of the nginx annotations in 03 (25.7).
+#
+#   URLRewrite            replaces rewrite-target
+#   RequestHeaderModifier replaces configuration-snippet header injection
+#   RequestRedirect       replaces ssl-redirect / permanent-redirect
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: route-filters
+  namespace: cka25
+spec:
+  parentRefs:
+    - name: platform-gw
+      namespace: cka25-infra
+      sectionName: open
+  hostnames: ["open.local"]
+  rules:
+    # /api/v1/users -> the backend sees /v1/users, plus two added headers
+    - matches:
+        - path: {type: PathPrefix, value: /api}
+      filters:
+        - type: URLRewrite
+          urlRewrite:
+            path:
+              type: ReplacePrefixMatch
+              replacePrefixMatch: /
+        - type: RequestHeaderModifier
+          requestHeaderModifier:
+            add:
+              - {name: X-Routed-By, value: gateway-api}
+              - {name: X-Env, value: lab}
+      backendRefs:
+        - {name: api, port: 80}
+    # /old -> 301 to the same path on https
+    - matches:
+        - path: {type: PathPrefix, value: /old}
+      filters:
+        - type: RequestRedirect
+          requestRedirect:
+            scheme: https
+            statusCode: 301
+      backendRefs:
+        - {name: root, port: 80}

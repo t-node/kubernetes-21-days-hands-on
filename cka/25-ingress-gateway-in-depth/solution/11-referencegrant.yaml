@@ -1,0 +1,16 @@
+# The permission that makes 10 work. It lives in the TARGET namespace and is
+# created by whoever owns it -- that is the whole point (25.6).
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: allow-cka25-routes
+  namespace: cka25-data
+spec:
+  from:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      namespace: cka25
+  to:
+    - group: ""
+      kind: Service
+      name: data-svc

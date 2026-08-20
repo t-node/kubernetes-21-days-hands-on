@@ -1,0 +1,30 @@
+# A Gateway owned by the "platform team", with TWO listeners that differ only
+# in who may attach to them (25.5).
+#
+#   open      -> any namespace may attach
+#   restricted-> only namespaces labelled gateway-access=true
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: platform-gw
+  namespace: cka25-infra
+spec:
+  gatewayClassName: eg
+  listeners:
+    - name: open
+      port: 80
+      protocol: HTTP
+      hostname: "open.local"
+      allowedRoutes:
+        namespaces:
+          from: All
+    - name: restricted
+      port: 80
+      protocol: HTTP
+      hostname: "restricted.local"
+      allowedRoutes:
+        namespaces:
+          from: Selector
+          selector:
+            matchLabels:
+              gateway-access: "true"

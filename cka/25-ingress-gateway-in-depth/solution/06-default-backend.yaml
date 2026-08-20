@@ -1,0 +1,20 @@
+# defaultBackend catches anything that matches no rule on this Ingress --
+# a custom 404 page, a maintenance notice, or a catch-all app.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: with-default
+  namespace: cka25
+spec:
+  ingressClassName: nginx
+  defaultBackend:
+    service:
+      name: root
+      port: {number: 80}
+  rules:
+    - host: fallback.local
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend: {service: {name: api, port: {number: 80}}}

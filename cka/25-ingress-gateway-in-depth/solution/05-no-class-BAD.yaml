@@ -1,0 +1,19 @@
+# DELIBERATELY UNCLAIMED. `ingressClassName` names a class that does not exist,
+# so no controller adopts it.
+#
+# The symptom is an empty ADDRESS column, forever, with no event and no error --
+# identical to what a missing default IngressClass looks like (25.4).
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: orphan
+  namespace: cka25
+spec:
+  ingressClassName: nginx-internal      # no such IngressClass
+  rules:
+    - host: orphan.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend: {service: {name: root, port: {number: 80}}}

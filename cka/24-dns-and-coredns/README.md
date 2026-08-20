@@ -747,4 +747,4 @@ nslookup web.default.svc.cluster.local
 ---
 
 **Previous:** [CKA 23 — Service Networking](../23-service-networking/)
-**Next: CKA 25 — Ingress and Gateway API in Depth** *(not yet built — see [CURRICULUM.md](../CURRICULUM.md))*
+**Next:** [CKA 25 — Ingress and Gateway API in Depth](../25-ingress-gateway-in-depth/)

@@ -1,0 +1,24 @@
+# DELIBERATELY BROKEN, and broken in the way people actually break it.
+#
+# Same regex path, but pathType: Prefix. The API server accepts it, the
+# controller accepts it, `kubectl get ingress` looks perfect -- and no request
+# ever matches, because Prefix does element-wise matching on a literal path and
+# there is no path element called `api(`.
+#
+# Expect 404 from the default backend for every request.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: rewrite-broken
+  namespace: cka25
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: broken.local
+      http:
+        paths:
+          - path: /api(/|$)(.*)
+            pathType: Prefix
+            backend: {service: {name: api, port: {number: 80}}}

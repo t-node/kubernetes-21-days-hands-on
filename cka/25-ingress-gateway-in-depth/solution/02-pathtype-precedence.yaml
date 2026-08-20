@@ -1,0 +1,32 @@
+# Four paths on one host, deliberately overlapping, to demonstrate 25.2.
+#
+#   /                     Prefix  -> root
+#   /api                  Prefix  -> api
+#   /api/v1/health        Exact   -> health
+#   /api/v1/health        Prefix  -> api      (same length; Exact must win)
+#
+# The YAML order is deliberately WRONG-looking: the most specific rule is not
+# first. Longest-match plus Exact-beats-Prefix decides, not file order.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: precedence
+  namespace: cka25
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: paths.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend: {service: {name: root, port: {number: 80}}}
+          - path: /api/v1/health
+            pathType: Prefix
+            backend: {service: {name: api, port: {number: 80}}}
+          - path: /api
+            pathType: Prefix
+            backend: {service: {name: api, port: {number: 80}}}
+          - path: /api/v1/health
+            pathType: Exact
+            backend: {service: {name: health, port: {number: 80}}}
