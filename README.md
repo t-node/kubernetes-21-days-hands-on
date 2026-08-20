@@ -175,6 +175,7 @@ any time after Day 01.
 | [03](cka/03-commands-and-arguments/) | `ENTRYPOINT`/`CMD` vs `command`/`args`, pod immutability | why a container exits, and how to edit a live pod |
 | [04](cka/04-kubeconfig-and-the-api/) | kubeconfig, API groups, `kubectl proxy`, raw `curl` | connecting to any cluster, and the API underneath |
 | [05](cka/05-certificates-api-and-authorization/) | CSR objects, approve/deny, authorization modes | onboarding a user, and what RBAC sits inside |
+| [06](cka/06-cluster-maintenance/) | drains, version skew, upgrades, **etcd backup/restore** | the most likely hands-on exam task |
 
 More arrives as the source transcripts do — see
 [cka/README.md](cka/README.md) for what is covered and what is still pending.

@@ -12,3 +12,6 @@ __pycache__/
 
 # fetched application source (someone else's repo)
 app/devboard/
+
+# indexed course transcript (copyrighted source material -- local only)
+.transcript/

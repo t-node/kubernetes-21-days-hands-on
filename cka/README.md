@@ -31,17 +31,17 @@ Roughly 40 percent overlaps. This track holds the other 60 percent.
 | [03](03-commands-and-arguments/) | `ENTRYPOINT`/`CMD` vs `command`/`args`, pod immutability, `replace --force` | the main track never explained why a container exits |
 | [04](04-kubeconfig-and-the-api/) | kubeconfig in depth, API groups, `kubectl proxy`, raw `curl` | Day 01 showed `current-context` and stopped |
 | [05](05-certificates-api-and-authorization/) | CSR objects, approve/deny, authorization modes | Day 19 said "do not run it" |
+| [06](06-cluster-maintenance/) | node drains, version skew, kubeadm upgrades, **etcd backup and restore** | flagged twice as the biggest gap |
 
 ## Pending the rest of the transcript
 
-The source course has **310 lectures**; the pastes so far have supplied **43**
-(lectures 1-13, 91-107 and 152-164). These topics are named in the section list but their lectures
+The full 312-lecture transcript is now indexed locally (see below). **169
+lectures of new material remain to be built** — the roadmap is at the bottom. These topics are named in the section list but their lectures
 have not arrived yet, so nothing here covers them:
 
 - kube-scheduler, kube-controller-manager, kubelet, kube-proxy in depth
 - Secrets (the lecture cut off mid-sentence — Day 10 covers the ground)
-- **etcd backup and restore** — a near-guaranteed exam task
-- kubeadm cluster bootstrap, cluster upgrades, OS upgrades
+- kubeadm cluster bootstrap and HA design (upgrades are now covered)
 - TLS certificate *generation* for cluster components (the CSR API is now covered)
 - Admission controllers
 - Networking: CNI, CoreDNS, kube-proxy internals, NetworkPolicy
@@ -73,3 +73,38 @@ Speed matters more than recall.
 
 The environment is containerd-based, so `docker` commands are not available on
 the nodes — which is exactly why track day 01 exists.
+
+---
+
+## Roadmap — what is left to build
+
+The full 312-lecture transcript is indexed at `.transcript/` (gitignored: it is
+copyrighted course material, kept locally only). `.transcript/index.json` lists
+every lecture; `.transcript/L###.txt` holds each one's text.
+
+**169 lectures of new material remain**, grouped by topic and ordered by how
+much they matter for the exam:
+
+| Topic cluster | Lectures | Chars | Priority |
+|---|---:|---:|---|
+| TLS certificates end to end | 9 | 62,872 | very high |
+| Troubleshooting: app / control plane / worker node | 7 | 41,177 | very high |
+| JSONPath and custom-columns | 1 | 10,198 | very high |
+| Networking internals: namespaces, CNI, DNS, services | 18 | 115,805 | high |
+| Scheduling: static pods, priority, profiles, admission | 25 | 139,365 | high |
+| Security: service accounts, contexts, image, NetworkPolicy | 11 | 62,984 | high |
+| Ingress and Gateway API (deeper than Day 20) | 4 | 46,034 | medium |
+| kubeadm install, HA design, etcd in HA | 8 | 70,716 | medium |
+| Storage internals and CSI | 11 | 46,238 | medium |
+| Kustomize | 17 | 94,953 | medium |
+| Helm | 8 | 43,628 | medium |
+| Encryption at rest, multi-container, VPA, in-place resize | 9 | 57,375 | medium |
+| CRDs, custom controllers, operators | 3 | 15,424 | low |
+| Core concepts recap, imperative vs declarative | 24 | 134,580 | low |
+| Mock exam worked solutions -> exam-style task banks | 3 | 96,644 | as material |
+
+Priority reflects CKA exam weighting, not intrinsic interest. The "very high"
+rows are the ones people fail on.
+
+To continue, just say which cluster to build next — no pasting required, the
+source is already on disk.
