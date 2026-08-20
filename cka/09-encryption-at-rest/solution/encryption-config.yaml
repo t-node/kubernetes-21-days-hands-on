@@ -1,0 +1,20 @@
+# Template. enable-encryption.sh substitutes KEY1_PLACEHOLDER with a freshly
+# generated 32-byte key and writes the result to /etc/kubernetes/enc/enc.yaml on
+# the control-plane node.
+#
+# THIS IS A FILE ON DISK, NOT AN API OBJECT. Do not `kubectl apply` it.
+apiVersion: apiserver.config.k8s.io/v1
+kind: EncryptionConfiguration
+resources:
+  - resources:
+      - secrets
+    providers:
+      # FIRST = the provider used to ENCRYPT new writes.
+      - aescbc:
+          keys:
+            - name: key1
+              secret: KEY1_PLACEHOLDER
+      # LAST = still able to DECRYPT the plaintext records written before
+      # encryption was turned on. Remove this only once nothing plaintext
+      # remains, and never put it first unless you are decommissioning.
+      - identity: {}

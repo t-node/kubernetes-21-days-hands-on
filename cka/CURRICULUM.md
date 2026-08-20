@@ -27,7 +27,7 @@ column back into the 21 days when you need ground under a topic.
 ---
 ## The assignments
 
-33 assignments. **11 built, 22 to build.**
+33 assignments. **12 built, 21 to build.**
 
 
 ### Core Concepts
@@ -52,7 +52,7 @@ column back into the 21 days when you need ground under a topic.
 | # | Assignment | Lectures | Builds on | Status |
 |---|---|---|---|---|
 | 08 | [Commands and Arguments](08-commands-and-arguments/) | 99, 100, 102 | Day 02 | **built** |
-| 09 | Encrypting Secret Data at Rest | 110, 111 | Day 10, CKA 03 | to build |
+| 09 | [Encrypting Secret Data at Rest](09-encryption-at-rest/) | 110, 111 | Day 10, CKA 03 | **built** |
 | 10 | Multi-Container Pods and Init Containers | 114, 115, 119 | Day 02, Day 12 | to build |
 | 11 | Autoscaling: VPA and In-Place Resize | 121, 122, 125, 126 | Day 17 | to build |
 

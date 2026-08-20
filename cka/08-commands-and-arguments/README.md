@@ -523,4 +523,7 @@ Shell form makes the shell PID 1 and your app stops receiving `SIGTERM`.
 
 ---
 
+**Previous:** [CKA 07 — Admission Controllers, Webhooks and CEL Policies](../07-admission-controllers/)
+**Next:** [CKA 09 — Encrypting Secret Data at Rest](../09-encryption-at-rest/)
+
 **Back to the [CKA track](../) · [Main course](../../README.md)**
