@@ -1,10 +1,11 @@
 # CKA 07 — Admission Controllers, Webhooks and CEL Policies
 
 **Time:** 90-120 minutes
-**Prerequisites:** [CKA 01](../01-control-plane-components/), [CKA 05](../05-manual-scheduling-and-static-pods/), [CKA 15](../15-certificates-api-and-authorization/), [Day 19](../../days/day-19-rbac/)
+**Prerequisites:** [CKA 01](../01-control-plane-components/), [CKA 05](../05-manual-scheduling-and-static-pods/), [Day 19](../../days/day-19-rbac/)
 **Source lectures:** 81, 83, 84, 86
 
-RBAC (Day 19, CKA 15) answers *may this user call this verb on this resource?*
+RBAC ([Day 19](../../days/day-19-rbac/)) answers *may this user call this verb
+on this resource?*
 It cannot answer *is this a sensible object?* RBAC has no opinion on whether the
 image comes from Docker Hub, whether the tag is `latest`, or whether the
 container runs as root — those are properties of the payload, and RBAC never

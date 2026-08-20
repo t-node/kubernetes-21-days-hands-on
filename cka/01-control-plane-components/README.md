@@ -573,4 +573,4 @@ docker exec <node> sh -c "iptables-save -t nat | grep <clusterIP>"
 
 ---
 
-**Next: [CKA 02 — Container runtimes](../02-container-runtimes-and-crictl/)**
+**Next:** [CKA 02 — Container Runtimes: CRI, OCI and crictl](../02-container-runtimes-and-crictl/)

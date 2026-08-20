@@ -543,4 +543,5 @@ the **last-applied annotation**. The third is the only thing that can tell
 
 ---
 
-**Next: [CKA 05 — Manual scheduling and static pods](../05-manual-scheduling-and-static-pods/)**
+**Previous:** [CKA 03 — etcd and Cluster Data](../03-etcd-and-cluster-data/)
+**Next:** [CKA 05 — Manual Scheduling and Static Pods](../05-manual-scheduling-and-static-pods/)

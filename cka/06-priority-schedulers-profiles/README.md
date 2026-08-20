@@ -521,4 +521,4 @@ kubectl config set-context --current --namespace=default
 ---
 
 **Previous:** [CKA 05 — Manual Scheduling and Static Pods](../05-manual-scheduling-and-static-pods/)
-**Next: CKA 07 — Admission Controllers** *(not yet built — see [CURRICULUM.md](../CURRICULUM.md))*
+**Next:** [CKA 07 — Admission Controllers, Webhooks and CEL Policies](../07-admission-controllers/)

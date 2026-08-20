@@ -519,4 +519,5 @@ etcdctl del  <key>
 
 ---
 
-**Back to the [CKA track](../) · [Main course](../../README.md)**
+**Previous:** [CKA 02 — Container Runtimes: CRI, OCI and crictl](../02-container-runtimes-and-crictl/)
+**Next:** [CKA 04 — Imperative vs Declarative, and kubectl apply](../04-imperative-declarative-and-apply/)

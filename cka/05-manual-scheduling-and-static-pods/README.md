@@ -539,4 +539,5 @@ does not fit, the kubelet rejects it and nothing reschedules it.
 
 ---
 
+**Previous:** [CKA 04 — Imperative vs Declarative, and kubectl apply](../04-imperative-declarative-and-apply/)
 **Next:** [CKA 06 — Priority Classes, Multiple Schedulers and Scheduler Profiles](../06-priority-schedulers-profiles/)

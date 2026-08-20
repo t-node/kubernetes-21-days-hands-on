@@ -129,6 +129,65 @@ def check_shell():
     return problems
 
 
+def check_ordering():
+    """Two properties the curriculum depends on:
+
+    1. no assignment lists a LATER one as a prerequisite
+    2. the Previous/Next chain is unbroken from the first to the last
+    """
+    problems = []
+    cka_dir = os.path.join(ROOT, "cka")
+    if not os.path.isdir(cka_dir):
+        print("ORDER  skipped -- no cka/ directory")
+        return problems
+
+    dirs = sorted(d for d in os.listdir(cka_dir) if re.match(r"^\d\d-", d))
+    by_num = {int(d[:2]): d for d in dirs}
+    checked = 0
+
+    for n in sorted(by_num):
+        path = os.path.join(cka_dir, by_num[n], "README.md")
+        with open(path, encoding="utf-8") as fh:
+            text = fh.read()
+        checked += 1
+
+        prereq = re.search(r"^\*\*Prerequisites:\*\*(.*)$", text, re.M)
+        if prereq:
+            for ref in (int(x) for x in re.findall(r"\[CKA (\d+)\]", prereq.group(1))):
+                if ref >= n:
+                    problems.append((f"cka/{by_num[n]}",
+                                     f"prerequisite CKA {ref} comes later than CKA {n}"))
+
+        prev = re.search(r"\*\*Previous:\*\*\s*\[CKA (\d+)", text)
+        nxt = re.search(r"\*\*Next:\*\*\s*\[CKA (\d+)", text)
+        got = (int(prev.group(1)) if prev else None,
+               int(nxt.group(1)) if nxt else None)
+        want = (max([k for k in by_num if k < n], default=None),
+                min([k for k in by_num if k > n], default=None))
+        if got != want:
+            problems.append((f"cka/{by_num[n]}",
+                             f"nav chain is prev={got[0]} next={got[1]}, "
+                             f"expected prev={want[0]} next={want[1]}"))
+
+    days_dir = os.path.join(ROOT, "days")
+    if os.path.isdir(days_dir):
+        for d in sorted(x for x in os.listdir(days_dir) if re.match(r"^day-\d\d", x)):
+            n = int(d[4:6])
+            with open(os.path.join(days_dir, d, "README.md"), encoding="utf-8") as fh:
+                text = fh.read()
+            checked += 1
+            prereq = re.search(r"^\*\*Prerequisites?:\*\*(.*)$", text, re.M)
+            if prereq:
+                for ref in (int(x) for x in re.findall(r"\[?Day (\d+)", prereq.group(1))):
+                    if ref >= n:
+                        problems.append((f"days/{d}",
+                                         f"prerequisite Day {ref} comes later than Day {n}"))
+
+    print(f"ORDER  {checked} assignments checked for forward prerequisites and "
+          f"nav continuity, {len(problems)} problems")
+    return problems
+
+
 def _has(cmd):
     from shutil import which
     return which(cmd) is not None
@@ -136,7 +195,7 @@ def _has(cmd):
 
 def main():
     print(f"validating {ROOT}\n")
-    problems = check_yaml() + check_links() + check_shell()
+    problems = check_yaml() + check_links() + check_shell() + check_ordering()
     if problems:
         print("\nproblems:")
         for where, what in problems:
