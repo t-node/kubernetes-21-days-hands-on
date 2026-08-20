@@ -1,0 +1,25 @@
+# DELIBERATELY BROKEN ON THE SECOND APPLY.
+#
+# includeSelectors: true writes `build` into spec.selector.matchLabels, which is
+# IMMUTABLE. The first apply succeeds. Change the value and the next apply fails
+# with:
+#
+#   The Deployment "web" is invalid: spec.selector: Invalid value: ...
+#   field is immutable
+#
+# and stays broken until the Deployment is deleted (29.6).
+#
+# `commonLabels:` -- the deprecated field -- behaves exactly like this and has no
+# way to opt out, which is why it was replaced.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../base
+
+namespace: cka29
+
+labels:
+  - pairs:
+      build: "0001"
+    includeSelectors: true   # <- the trap

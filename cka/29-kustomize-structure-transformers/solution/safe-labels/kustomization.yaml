@@ -1,0 +1,15 @@
+# The safe form: a label that changes on every build, kept OUT of selectors.
+#
+# Apply this, change the value, apply again -- it works every time.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../base
+
+namespace: cka29
+
+labels:
+  - pairs:
+      build: "0001"          # changes on every CI run
+    includeSelectors: false  # <- the whole point

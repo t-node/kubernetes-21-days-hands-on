@@ -1,0 +1,7 @@
+# One kustomization per directory. This one knows only about the api.
+# `kubectl kustomize solution/base/api` builds it on its own (29.5).
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - deployment.yaml
+  - service.yaml

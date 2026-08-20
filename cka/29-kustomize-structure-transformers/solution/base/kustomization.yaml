@@ -1,0 +1,19 @@
+# The root. It names DIRECTORIES, each of which has its own kustomization.yaml.
+# That is what keeps this file short however large the application grows (29.5).
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - api
+  - web
+  - db
+
+# A generated ConfigMap. Its name gets a content hash appended, and every
+# reference to it -- here, web's envFrom -- is rewritten to match (29.7).
+configMapGenerator:
+  - name: app-config
+    literals:
+      - LOG_LEVEL=info
+      - GREETING=hello-from-base
+    files:
+      - settings.conf

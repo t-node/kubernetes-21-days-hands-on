@@ -27,7 +27,7 @@ column back into the 21 days when you need ground under a topic.
 ---
 ## The assignments
 
-33 assignments. **28 built, 5 to build.**
+33 assignments. **29 built, 4 to build.**
 
 
 ### Core Concepts
@@ -112,7 +112,7 @@ column back into the 21 days when you need ground under a topic.
 
 | # | Assignment | Lectures | Builds on | Status |
 |---|---|---|---|---|
-| 29 | Kustomize: Structure and Transformers | 261, 262, 263, 264, 265, 266, 267, 268, 270, 271, 272 | Day 12 | to build |
+| 29 | [Kustomize: Structure and Transformers](29-kustomize-structure-transformers/) | 261, 262, 263, 264, 265, 266, 267, 268, 270, 271, 272 | Day 12 | **built** |
 | 30 | Kustomize: Patches, Overlays, Components | 274, 275, 276, 277, 279, 281 | CKA 29 | to build |
 
 ### Troubleshooting

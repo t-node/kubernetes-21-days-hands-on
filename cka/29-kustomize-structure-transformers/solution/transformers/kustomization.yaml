@@ -1,0 +1,42 @@
+# Every common transformer at once, applied to the base (29.6).
+#
+# Build it and diff against the base to see exactly what each one did:
+#   diff <(kubectl kustomize ../base) <(kubectl kustomize .)
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../base
+
+# 1. every object lands in this namespace
+namespace: cka29
+
+# 2. every object is renamed -- AND every reference to it is rewritten:
+#      api's DB_HOST=db          -> stays `db`? no: it becomes prod-db-v2
+#      web's API_URL=http://api  -> rewritten too
+#      db's serviceName: db      -> rewritten
+namePrefix: prod-
+nameSuffix: -v2
+
+# 3. labels. includeSelectors: false keeps them OUT of spec.selector, which is
+#    immutable -- see unsafe-labels-BAD for what happens otherwise.
+labels:
+  - pairs:
+      app.kubernetes.io/part-of: shop
+      environment: production
+    includeSelectors: false
+
+# 4. annotations on everything
+commonAnnotations:
+  owner: platform-team
+  contact: platform@example.com
+
+# 5. images are matched by IMAGE NAME, not container name
+images:
+  - name: nginx
+    newTag: "1.27.2-alpine"
+
+# 6. replica counts, by object name (the name BEFORE the prefix is applied)
+replicas:
+  - name: web
+    count: 4

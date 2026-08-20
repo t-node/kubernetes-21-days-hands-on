@@ -1,0 +1,27 @@
+# Plain, valid, applicable Kubernetes YAML. Nothing here is templated -- you
+# could `kubectl apply -f` this file on its own (29.1).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+  labels: {app: api, tier: backend}
+spec:
+  replicas: 2
+  selector:
+    matchLabels: {app: api}
+  template:
+    metadata:
+      labels: {app: api, tier: backend}
+    spec:
+      containers:
+        - name: api
+          image: nginx:1.27-alpine
+          ports: [{containerPort: 80}]
+          env:
+            # A reference to another object BY NAME. namePrefix has to rewrite
+            # this too, or the app would look for a Service that no longer
+            # exists under that name (29.6).
+            - name: DB_HOST
+              value: db
+          resources:
+            requests: {cpu: 10m, memory: 16Mi}

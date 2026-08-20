@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: db
+  labels: {app: db, tier: data}
+spec:
+  # serviceName is a REFERENCE to the headless Service below. Watch namePrefix
+  # rewrite it (29.6).
+  serviceName: db
+  replicas: 1
+  selector:
+    matchLabels: {app: db}
+  template:
+    metadata:
+      labels: {app: db, tier: data}
+    spec:
+      containers:
+        - name: db
+          image: nginx:1.27-alpine
+          ports: [{containerPort: 80}]
+          resources:
+            requests: {cpu: 10m, memory: 16Mi}

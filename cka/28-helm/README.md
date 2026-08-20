@@ -696,4 +696,4 @@ kubectl get secrets -l owner=helm
 ---
 
 **Previous:** [CKA 27 — Build a Cluster with kubeadm](../27-build-a-cluster-with-kubeadm/)
-**Next: CKA 29 — Kustomize: Structure and Transformers** *(not yet built — see [CURRICULUM.md](../CURRICULUM.md))*
+**Next:** [CKA 29 — Kustomize: Structure and Transformers](../29-kustomize-structure-transformers/)

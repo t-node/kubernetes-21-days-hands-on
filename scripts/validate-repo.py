@@ -37,7 +37,6 @@ NOT_MANIFESTS = (
     "cka/28-helm/solution/mychart/Chart.yaml",   # chart metadata
     "cka/28-helm/solution/mychart/values.yaml",  # chart values
     "cka/28-helm/solution/values-",              # per-environment values files
-    "kustomization.yaml",             # Kustomize entry points carry their own kind
 )
 
 
