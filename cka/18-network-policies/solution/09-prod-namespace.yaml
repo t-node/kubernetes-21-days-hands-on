@@ -1,0 +1,36 @@
+# A second namespace, labelled, with an api pod and a decoy.
+#
+# The decoy exists to make the AND/OR difference visible: under the AND rule it
+# is denied, under the OR rule it gets in -- and it is the pod you would never
+# have intended to allow.
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cka18-prod
+  labels:
+    env: prod
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: prod-api
+  namespace: cka18-prod
+  labels: {role: api}
+spec:
+  containers:
+    - name: c
+      image: curlimages/curl:8.10.1
+      command: ["sleep", "36000"]
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: prod-decoy
+  namespace: cka18-prod
+  labels: {role: definitely-not-api}
+spec:
+  containers:
+    - name: c
+      image: curlimages/curl:8.10.1
+      command: ["sleep", "36000"]

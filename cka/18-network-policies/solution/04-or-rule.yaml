@@ -1,0 +1,29 @@
+# OR: TWO list items, one selector each.
+#
+# Allowed: ANY pod in a namespace labelled env=prod,
+#      OR  any role=api pod in cka18 (the policy's own namespace).
+#
+# The first clause alone lets the entire prod namespace reach the database --
+# including pods that have nothing to do with the api tier.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: db-allow-or
+  namespace: cka18
+spec:
+  podSelector:
+    matchLabels:
+      role: db
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              env: prod
+        - podSelector:                # <- DASH: a second, independent rule
+            matchLabels:
+              role: api
+      ports:
+        - protocol: TCP
+          port: 80

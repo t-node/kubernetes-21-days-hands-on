@@ -1,0 +1,40 @@
+# The same policy, fixed: CoreDNS is a pod, so it needs an explicit allow.
+#
+# UDP 53 AND TCP 53 -- responses larger than 512 bytes fall back to TCP, so a
+# UDP-only rule works until the day it does not.
+#
+# kubernetes.io/metadata.name is set automatically on every namespace, so you
+# can select one by name without labelling it yourself.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: web-egress
+  namespace: cka18
+spec:
+  podSelector:
+    matchLabels:
+      role: web
+  policyTypes:
+    - Egress
+  egress:
+    # 1. DNS -- put this in every egress policy you ever write
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # 2. the actual application traffic
+    - to:
+        - podSelector:
+            matchLabels:
+              role: api
+      ports:
+        - protocol: TCP
+          port: 80

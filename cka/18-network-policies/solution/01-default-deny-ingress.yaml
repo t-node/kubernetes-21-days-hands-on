@@ -1,0 +1,13 @@
+# podSelector: {} selects EVERY pod in the namespace.
+# policyTypes: [Ingress] with no `ingress:` rules == deny all incoming.
+#
+# Egress is untouched: these pods can still call out.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: cka18
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress

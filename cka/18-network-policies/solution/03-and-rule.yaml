@@ -1,0 +1,28 @@
+# AND: ONE list item holding TWO selectors.
+#
+# Allowed: pods labelled role=api THAT ARE ALSO in a namespace labelled
+#          env=prod. Both conditions, same source.
+#
+# Compare with 04-or-rule.yaml -- the files differ by ONE dash.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: db-allow-and
+  namespace: cka18
+spec:
+  podSelector:
+    matchLabels:
+      role: db
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              env: prod
+          podSelector:                # <- NO dash: same list item as above
+            matchLabels:
+              role: api
+      ports:
+        - protocol: TCP
+          port: 80

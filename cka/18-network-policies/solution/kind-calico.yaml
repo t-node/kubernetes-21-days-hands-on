@@ -1,0 +1,21 @@
+# A kind cluster whose CNI actually enforces NetworkPolicy.
+#
+#   kind create cluster --name netpol-lab --config solution/kind-calico.yaml
+#   bash solution/install-calico.sh
+#
+# Two settings matter:
+#   disableDefaultCNI  -- kindnet is not installed, so nothing enforces policy
+#                         and no pod becomes Ready until Calico is applied
+#   podSubnet          -- 192.168.0.0/16 is Calico's own default IP pool.
+#                         Matching them avoids configuring an IPPool by hand.
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: netpol-lab
+networking:
+  disableDefaultCNI: true
+  podSubnet: "192.168.0.0/16"
+nodes:
+  - role: control-plane
+    image: kindest/node:v1.31.4
+  - role: worker
+    image: kindest/node:v1.31.4

@@ -1,0 +1,28 @@
+# ipBlock is for sources and destinations OUTSIDE the cluster -- a backup
+# server, an external database, a corporate CIDR.
+#
+# `except` carves holes out of the allowed range.
+#
+# Note ipBlock sees the address AS IT ARRIVES. Anything that SNATs on the way
+# in (a NodePort, a cloud load balancer) presents the node's IP instead of the
+# client's, and this rule then matches the wrong thing (18.6).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: db-allow-backup-server
+  namespace: cka18
+spec:
+  podSelector:
+    matchLabels:
+      role: db
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - ipBlock:
+            cidr: 172.18.0.0/16          # the kind Docker network
+            except:
+              - 172.18.0.99/32
+      ports:
+        - protocol: TCP
+          port: 80

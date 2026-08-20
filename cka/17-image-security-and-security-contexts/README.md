@@ -808,4 +808,4 @@ kubectl apply -f pod.yaml --dry-run=server
 ---
 
 **Previous:** [CKA 16 — Service Accounts and Tokens](../16-service-accounts/)
-**Next: CKA 18 — Network Policies** *(not yet built — see [CURRICULUM.md](../CURRICULUM.md))*
+**Next:** [CKA 18 — Network Policies](../18-network-policies/)

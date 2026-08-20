@@ -1,0 +1,23 @@
+# Add back exactly one path: api -> db on TCP 80.
+#
+# There is NO egress rule for db, and none is needed -- policies are stateful,
+# so the reply to an allowed connection flows back automatically (18.2).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: db-allow-api
+  namespace: cka18
+spec:
+  podSelector:
+    matchLabels:
+      role: db
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              role: api
+      ports:
+        - protocol: TCP
+          port: 80
