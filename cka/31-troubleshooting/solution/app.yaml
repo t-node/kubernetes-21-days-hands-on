@@ -1,0 +1,70 @@
+# A two-tier application that works. Every scenario breaks something about it,
+# or about the cluster it runs on.
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cka31
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: db, namespace: cka31, labels: {app: db, tier: data}}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: db}}
+  template:
+    metadata: {labels: {app: db, tier: data}}
+    spec:
+      containers:
+        - name: db
+          image: nginx:1.27-alpine
+          ports: [{name: pg, containerPort: 80}]
+          readinessProbe:
+            httpGet: {path: /, port: pg}
+            periodSeconds: 3
+          resources: {requests: {cpu: 10m, memory: 16Mi}}
+---
+apiVersion: v1
+kind: Service
+metadata: {name: db, namespace: cka31}
+spec:
+  selector: {app: db}
+  ports: [{name: pg, port: 5432, targetPort: pg}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: web, namespace: cka31, labels: {app: web, tier: frontend}}
+spec:
+  replicas: 3
+  selector: {matchLabels: {app: web}}
+  template:
+    metadata: {labels: {app: web, tier: frontend}}
+    spec:
+      containers:
+        - name: web
+          image: nginx:1.27-alpine
+          ports: [{name: http, containerPort: 80}]
+          env:
+            - {name: DB_HOST, value: "db"}
+          readinessProbe:
+            httpGet: {path: /, port: http}
+            periodSeconds: 3
+          resources: {requests: {cpu: 10m, memory: 16Mi}}
+---
+apiVersion: v1
+kind: Service
+metadata: {name: web, namespace: cka31}
+spec:
+  selector: {app: web}
+  ports: [{name: http, port: 80, targetPort: http}]
+---
+# A client to test from, so every check is one command.
+apiVersion: v1
+kind: Pod
+metadata: {name: client, namespace: cka31}
+spec:
+  containers:
+    - name: c
+      image: curlimages/curl:8.10.1
+      command: ["sleep", "36000"]
+      resources: {requests: {cpu: 10m, memory: 16Mi}}

@@ -688,4 +688,4 @@ $patch: replace      # discard the base's list
 ---
 
 **Previous:** [CKA 29 — Kustomize: Structure and Transformers](../29-kustomize-structure-transformers/)
-**Next: CKA 31 — Troubleshooting: Three Failure Domains** *(not yet built — see [CURRICULUM.md](../CURRICULUM.md))*
+**Next:** [CKA 31 — Troubleshooting: Three Failure Domains](../31-troubleshooting/)

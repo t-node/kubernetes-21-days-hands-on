@@ -27,7 +27,7 @@ column back into the 21 days when you need ground under a topic.
 ---
 ## The assignments
 
-33 assignments. **30 built, 3 to build.**
+33 assignments. **31 built, 2 to build.**
 
 
 ### Core Concepts
@@ -119,7 +119,7 @@ column back into the 21 days when you need ground under a topic.
 
 | # | Assignment | Lectures | Builds on | Status |
 |---|---|---|---|---|
-| 31 | Troubleshooting: The Three Failure Domains | 283, 284, 286, 287, 289, 290, 292 | Day 21 | to build |
+| 31 | [Troubleshooting: The Three Failure Domains](31-troubleshooting/) | 283, 284, 286, 287, 289, 290, 292 | Day 21 | **built** |
 
 ### Other Topics JSONPath
 

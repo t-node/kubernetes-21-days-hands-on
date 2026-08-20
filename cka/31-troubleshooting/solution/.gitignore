@@ -1,0 +1,3 @@
+# break.sh records which scenario is active here. It is local state, and reading
+# it would spoil the exercise.
+.broken
