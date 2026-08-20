@@ -27,7 +27,7 @@ column back into the 21 days when you need ground under a topic.
 ---
 ## The assignments
 
-33 assignments. **31 built, 2 to build.**
+33 assignments. **32 built, 1 to build.**
 
 
 ### Core Concepts
@@ -125,7 +125,7 @@ column back into the 21 days when you need ground under a topic.
 
 | # | Assignment | Lectures | Builds on | Status |
 |---|---|---|---|---|
-| 32 | JSONPath and Output Formatting | 297 | Day 02 | to build |
+| 32 | [JSONPath and Output Formatting](32-jsonpath/) | 297 | Day 02 | **built** |
 
 ### Mock Exams
 

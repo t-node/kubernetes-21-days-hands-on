@@ -585,4 +585,4 @@ kubectl get netpol -A
 ---
 
 **Previous:** [CKA 30 — Kustomize: Patches, Overlays and Components](../30-kustomize-patches-overlays-components/)
-**Next: CKA 32 — JSONPath and Output Formatting** *(not yet built — see [CURRICULUM.md](../CURRICULUM.md))*
+**Next:** [CKA 32 — JSONPath and Output Formatting](../32-jsonpath/)
