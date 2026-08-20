@@ -1,0 +1,9 @@
+# DELIBERATELY BROKEN. `owner` is empty, and the chart's labels helper wraps it
+# in `required`, so the render fails with the message the chart author wrote
+# rather than producing a manifest with an empty label.
+#
+# Expect:
+#   Error: execution error at (mychart/templates/deployment.yaml:...):
+#   values.owner is required -- set it with --set owner=<team>
+replicaCount: 1
+owner: ""

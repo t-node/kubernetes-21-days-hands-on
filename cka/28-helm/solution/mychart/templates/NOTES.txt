@@ -1,0 +1,24 @@
+{{/* Rendered and printed after install and upgrade. It is a template too. */}}
+Release {{ .Release.Name }} is revision {{ .Release.Revision }} in namespace {{ .Release.Namespace }}.
+
+  chart:       {{ .Chart.Name }}-{{ .Chart.Version }}
+  appVersion:  {{ .Chart.AppVersion }}
+  replicas:    {{ .Values.replicaCount }}
+  owner:       {{ .Values.owner }}
+
+Reach it with:
+
+  kubectl -n {{ .Release.Namespace }} port-forward svc/{{ include "mychart.fullname" . }} 8081:{{ .Values.service.port }}
+  curl http://localhost:8081
+
+{{ if .Values.ingress.enabled -}}
+An Ingress was created for http://{{ .Values.ingress.host }}/
+{{- else -}}
+No Ingress was created. Enable one with:  --set ingress.enabled=true
+{{- end }}
+
+Inspect what Helm recorded:
+
+  helm get manifest {{ .Release.Name }} -n {{ .Release.Namespace }}
+  helm get values   {{ .Release.Name }} -n {{ .Release.Namespace }}
+  helm history      {{ .Release.Name }} -n {{ .Release.Namespace }}

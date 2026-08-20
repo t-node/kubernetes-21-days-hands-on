@@ -598,4 +598,4 @@ rm -rf /etc/cni/net.d && iptables -F && iptables -t nat -F && iptables -X
 ---
 
 **Previous:** [CKA 26 — Cluster Design and High Availability](../26-cluster-design-and-ha/)
-**Next: CKA 28 — Helm** *(not yet built — see [CURRICULUM.md](../CURRICULUM.md))*
+**Next:** [CKA 28 — Helm](../28-helm/)

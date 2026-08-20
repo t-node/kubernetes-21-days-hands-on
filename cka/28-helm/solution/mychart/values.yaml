@@ -1,0 +1,45 @@
+# Every value a template reads must have a default here, or the chart cannot be
+# installed without a -f file. `helm show values ./mychart` prints this file --
+# it is the chart's user documentation.
+
+replicaCount: 2
+
+image:
+  repository: nginx
+  # tag is deliberately EMPTY: the template falls back to .Chart.AppVersion,
+  # so bumping appVersion in Chart.yaml is enough to change the image (28.4).
+  tag: ""
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+
+# An empty map is falsy in Go templates, so `{{- if .Values.resources }}`
+# omits the whole block rather than emitting `resources: {}`.
+resources:
+  requests:
+    cpu: 10m
+    memory: 16Mi
+
+# Rendered into a ConfigMap and mounted. Shows `range` over a map.
+config:
+  greeting: "hello from the default values"
+  environment: "dev"
+
+# Rendered as a list. Shows `range` over a slice and `quote`.
+extraEnv:
+  - name: LOG_LEVEL
+    value: "info"
+
+ingress:
+  enabled: false
+  className: nginx
+  host: mychart.local
+
+# Demonstrates `required`: leave this empty and the render FAILS with a message
+# you wrote, rather than producing a broken manifest.
+owner: "platform-team"
+
+nodeSelector: {}
+tolerations: []

@@ -1,0 +1,18 @@
+# apiVersion v2 means "built for Helm 3". A chart with `apiVersion: v1` was
+# written for Helm 2 -- still installable, but its `dependencies` live in a
+# separate requirements.yaml (28.4).
+apiVersion: v2
+name: mychart
+description: A deliberately small chart, readable end to end, for CKA 28
+type: application
+
+# The CHART's version. Bump it when the TEMPLATES change.
+version: 0.1.0
+
+# The APPLICATION's version. Bump it when the IMAGE changes.
+# Templates use it as the default image tag, so these two stay in step.
+appVersion: "1.27-alpine"
+
+keywords: [cka, example]
+maintainers:
+  - name: you

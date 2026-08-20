@@ -1,0 +1,26 @@
+{{- if .Values.ingress.enabled -}}
+{{/*
+The whole file is wrapped in an `if`, so with ingress.enabled=false NOTHING is
+emitted -- not an empty document, not a comment. That is the idiomatic way to
+make an object optional (28.5).
+*/}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "mychart.fullname" . }}
+  labels:
+    {{- include "mychart.labels" . | nindent 4 }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  rules:
+    - host: {{ .Values.ingress.host | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "mychart.fullname" . }}
+                port:
+                  number: {{ .Values.service.port }}
+{{- end }}

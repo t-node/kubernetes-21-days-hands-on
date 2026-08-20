@@ -1,0 +1,6 @@
+# Anything matching these patterns is left out of the packaged chart.
+.DS_Store
+.git/
+.gitignore
+*.tmp
+*.bak

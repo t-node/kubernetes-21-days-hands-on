@@ -27,7 +27,7 @@ column back into the 21 days when you need ground under a topic.
 ---
 ## The assignments
 
-33 assignments. **27 built, 6 to build.**
+33 assignments. **28 built, 5 to build.**
 
 
 ### Core Concepts
@@ -106,7 +106,7 @@ column back into the 21 days when you need ground under a topic.
 
 | # | Assignment | Lectures | Builds on | Status |
 |---|---|---|---|---|
-| 28 | Helm | 250, 251, 253, 254, 255, 256, 257, 259 | Day 12 | to build |
+| 28 | [Helm](28-helm/) | 250, 251, 253, 254, 255, 256, 257, 259 | Day 12 | **built** |
 
 ### Kustomize
 
