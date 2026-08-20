@@ -1,0 +1,13 @@
+# No storageClassName: the default-class admission controller fills in the
+# cluster default (`standard` on kind). Its volumeBindingMode is
+# WaitForFirstConsumer, so this PVC stays Pending until a pod uses it.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: data-wffc
+  namespace: cka20
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 128Mi

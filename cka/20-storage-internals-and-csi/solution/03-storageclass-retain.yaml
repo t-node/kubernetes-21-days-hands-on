@@ -1,0 +1,16 @@
+# A second class, differing from `standard` in the two fields that matter most.
+#
+#   reclaimPolicy: Retain          -- the PV survives its PVC
+#   allowVolumeExpansion: true     -- PVCs using it can be grown
+#
+# Note what is NOT here: this cannot be created by editing `standard`. A
+# StorageClass's provisioner, parameters and reclaimPolicy are immutable, so a
+# different policy means a different class.
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: keep-my-data
+provisioner: rancher.io/local-path
+reclaimPolicy: Retain
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true

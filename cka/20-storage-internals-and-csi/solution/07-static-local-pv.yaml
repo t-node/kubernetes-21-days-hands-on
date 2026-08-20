@@ -1,0 +1,46 @@
+# STATIC provisioning: you create the PV yourself, and the storage must already
+# exist. `kubernetes.io/no-provisioner` says so explicitly -- nothing will ever
+# create a volume for this class.
+#
+# nodeAffinity is MANDATORY on a `local` volume: the data is on one node's disk,
+# so the scheduler must be told which one, or it will place the pod anywhere and
+# find nothing there.
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: local-manual
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: local-pv-manual
+spec:
+  capacity:
+    storage: 256Mi
+  accessModes: ["ReadWriteOnce"]
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-manual
+  local:
+    path: /mnt/manual-disk
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values: ["devops-worker"]        # the directory exists HERE only
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: local-pvc
+  namespace: cka20
+spec:
+  storageClassName: local-manual
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 128Mi

@@ -27,7 +27,7 @@ column back into the 21 days when you need ground under a topic.
 ---
 ## The assignments
 
-33 assignments. **19 built, 14 to build.**
+33 assignments. **20 built, 13 to build.**
 
 
 ### Core Concepts
@@ -78,7 +78,7 @@ column back into the 21 days when you need ground under a topic.
 
 | # | Assignment | Lectures | Builds on | Status |
 |---|---|---|---|---|
-| 20 | Storage Internals and CSI | 186, 187, 188, 189, 190, 191, 192, 193, 196, 199, 201 | Day 14 | to build |
+| 20 | [Storage Internals and CSI](20-storage-internals-and-csi/) | 186, 187, 188, 189, 190, 191, 192, 193, 196, 199, 201 | Day 14 | **built** |
 
 ### Networking
 

@@ -1,0 +1,13 @@
+# The SAME provisioner with Immediate binding, so the contrast in step 5 is
+# only the binding mode.
+#
+# With Immediate, the volume -- and therefore the node -- is chosen before any
+# pod exists. Every scheduling constraint you later add is then subordinate to
+# that decision (20.6).
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: bind-immediately
+provisioner: rancher.io/local-path
+reclaimPolicy: Delete
+volumeBindingMode: Immediate

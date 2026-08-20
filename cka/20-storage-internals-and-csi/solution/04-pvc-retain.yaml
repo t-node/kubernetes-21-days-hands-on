@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: data-retain
+  namespace: cka20
+spec:
+  storageClassName: keep-my-data
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 128Mi
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: retain-writer
+  namespace: cka20
+spec:
+  containers:
+    - name: app
+      image: busybox:1.36
+      command: ["sh", "-c", "echo 'do not lose me' > /data/important.txt; sleep 3600"]
+      volumeMounts:
+        - {name: data, mountPath: /data}
+  volumes:
+    - name: data
+      persistentVolumeClaim:
+        claimName: data-retain

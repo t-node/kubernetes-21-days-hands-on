@@ -748,4 +748,4 @@ kubectl patch X NAME --type=merge -p '{"metadata":{"finalizers":null}}'
 ---
 
 **Previous:** [CKA 18 — Network Policies](../18-network-policies/)
-**Next: CKA 20 — Storage Internals and CSI** *(not yet built — see [CURRICULUM.md](../CURRICULUM.md))*
+**Next:** [CKA 20 — Storage Internals, Provisioners and CSI](../20-storage-internals-and-csi/)

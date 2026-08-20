@@ -1,0 +1,51 @@
+# Two pods, one ReadWriteOnce PVC, forced onto DIFFERENT nodes.
+#
+# RWO is per NODE (20.8). The second pod cannot mount a volume already attached
+# read-write elsewhere, and hangs in ContainerCreating with a Multi-Attach or
+# FailedMount event.
+#
+# Change both antiAffinity rules to affinity and the same two pods share the
+# volume happily -- because they would be on one node. That is the whole
+# distinction.
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: rwo-first
+  namespace: cka20
+  labels: {app: rwo-test}
+spec:
+  containers:
+    - name: app
+      image: busybox:1.36
+      command: ["sh", "-c", "sleep 3600"]
+      volumeMounts:
+        - {name: data, mountPath: /data}
+  volumes:
+    - name: data
+      persistentVolumeClaim:
+        claimName: data-wffc
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: rwo-second
+  namespace: cka20
+  labels: {app: rwo-test}
+spec:
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchLabels: {app: rwo-test}
+          topologyKey: kubernetes.io/hostname
+  containers:
+    - name: app
+      image: busybox:1.36
+      command: ["sh", "-c", "sleep 3600"]
+      volumeMounts:
+        - {name: data, mountPath: /data}
+  volumes:
+    - name: data
+      persistentVolumeClaim:
+        claimName: data-wffc
