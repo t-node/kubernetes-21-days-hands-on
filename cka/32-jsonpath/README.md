@@ -448,4 +448,4 @@ JSONPath equivalent, runs server-side, and cannot be mistyped into silence.
 ---
 
 **Previous:** [CKA 31 — Troubleshooting: Three Failure Domains](../31-troubleshooting/)
-**Next: CKA 33 — Mock Exam Task Bank** *(not yet built — see [CURRICULUM.md](../CURRICULUM.md))*
+**Next:** [CKA 33 — Mock Exam Task Bank](../33-mock-exam/)

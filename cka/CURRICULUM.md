@@ -27,7 +27,7 @@ column back into the 21 days when you need ground under a topic.
 ---
 ## The assignments
 
-33 assignments. **32 built, 1 to build.**
+33 assignments. **33 built, 0 to build.**
 
 
 ### Core Concepts
@@ -131,7 +131,7 @@ column back into the 21 days when you need ground under a topic.
 
 | # | Assignment | Lectures | Builds on | Status |
 |---|---|---|---|---|
-| 33 | Mock Exam Task Bank | 302, 304, 306 | everything | to build |
+| 33 | [Mock Exam Task Bank](33-mock-exam/) | 302, 304, 306 | everything | **built** |
 
 ---
 ## Lectures already covered by the 21-day track

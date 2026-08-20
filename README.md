@@ -161,24 +161,32 @@ Budget **45 to 90 minutes per day.** Days 11 to 17 are heavier; give them more.
 
 ---
 
-## CKA track (parallel, optional)
+## CKA track (complete — 33 assignments)
 
 The 21 days teach you to **deploy an application**. The Certified Kubernetes
 Administrator exam tests something different: running and repairing the
 **cluster itself**. That material lives in **[`cka/`](cka/)** and can be taken
 any time after Day 01.
 
-| # | Topic | Why it is not in the main track |
-|:--:|---|---|
-| [01](cka/02-container-runtimes-and-crictl/) | Container runtimes: CRI, OCI, `ctr` / `nerdctl` / `crictl` | debugging a node when `kubectl` itself is down |
-| [02](cka/03-etcd-and-cluster-data/) | etcd: the key-value model, `etcdctl`, the `/registry` tree | reading cluster state straight from the datastore |
-| [03](cka/08-commands-and-arguments/) | `ENTRYPOINT`/`CMD` vs `command`/`args`, pod immutability | why a container exits, and how to edit a live pod |
-| [04](cka/14-kubeconfig-and-the-api/) | kubeconfig, API groups, `kubectl proxy`, raw `curl` | connecting to any cluster, and the API underneath |
-| [05](cka/15-certificates-api-and-authorization/) | CSR objects, approve/deny, authorization modes | onboarding a user, and what RBAC sits inside |
-| [06](cka/12-cluster-maintenance/) | drains, version skew, upgrades, **etcd backup/restore** | the most likely hands-on exam task |
+**All 33 assignments are built**, covering every content lecture in the source
+course. [cka/CURRICULUM.md](cka/CURRICULUM.md) is the ordered path, with a
+lecture-by-lecture index.
 
-More arrives as the source transcripts do — see
-[cka/README.md](cka/README.md) for what is covered and what is still pending.
+| Block | Assignments | What you end up able to do |
+|---|---|---|
+| **Foundations** | [01](cka/01-control-plane-components/)–[05](cka/05-manual-scheduling-and-static-pods/) | read the control plane, use `crictl` when `kubectl` is gone, work etcd directly, schedule a pod by hand |
+| **Scheduling & admission** | [06](cka/06-priority-schedulers-profiles/)–[07](cka/07-admission-controllers/) | preemption, scheduler profiles, and a **working admission webhook** |
+| **Workloads** | [08](cka/08-commands-and-arguments/)–[11](cka/11-autoscaling-vpa-inplace/) | `command`/`args`, encryption at rest, sidecars, in-place resize and the VPA |
+| **Security** | [13](cka/13-tls-in-kubernetes/)–[19](cka/19-crds-controllers-operators/) | issue certificates by hand, service accounts, security contexts, network policies, **write a CRD and a controller** |
+| **Storage** | [20](cka/20-storage-internals-and-csi/) | the layer beneath PV/PVC — CSI, provisioners, binding modes |
+| **Networking** | [21](cka/21-linux-networking-foundations/)–[25](cka/25-ingress-gateway-in-depth/) | build pod networking by hand, invoke a CNI plugin yourself, trace a Service through iptables, read CoreDNS |
+| **Cluster lifecycle** | [26](cka/26-cluster-design-and-ha/)–[27](cka/27-build-a-cluster-with-kubeadm/) | a 3-control-plane cluster taken below etcd quorum, and one built from nothing with `kubeadm` |
+| **Config management** | [28](cka/28-helm/)–[30](cka/30-kustomize-patches-overlays-components/) | write a Helm chart, and a Kustomize base with overlays and components |
+| **Exam preparation** | [31](cka/31-troubleshooting/)–[33](cka/33-mock-exam/) | eight **unlabelled** break/fix scenarios, JSONPath drills, and a graded 2-hour mock exam |
+
+**Where to start if you are short of time:** [CKA 31](cka/31-troubleshooting/)
+(troubleshooting is 30% of the exam and the domain people prepare for least),
+then [CKA 33](cka/33-mock-exam/) to find out what else you are missing.
 
 ---
 
