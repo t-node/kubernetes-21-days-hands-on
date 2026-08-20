@@ -1,0 +1,12 @@
+# The same pod with an identity that has been granted something.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: uses-dashboard-sa
+  namespace: cka16
+spec:
+  serviceAccountName: dashboard-sa
+  containers:
+    - name: client
+      image: curlimages/curl:8.10.1
+      command: ["sleep", "3600"]

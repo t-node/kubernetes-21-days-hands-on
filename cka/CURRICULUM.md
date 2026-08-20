@@ -27,7 +27,7 @@ column back into the 21 days when you need ground under a topic.
 ---
 ## The assignments
 
-33 assignments. **15 built, 18 to build.**
+33 assignments. **16 built, 17 to build.**
 
 
 ### Core Concepts
@@ -69,7 +69,7 @@ column back into the 21 days when you need ground under a topic.
 | 13 | [TLS in Kubernetes](13-tls-in-kubernetes/) | 141, 142, 143, 144, 145, 146, 147, 148, 151 | CKA 03 | **built** |
 | 14 | [KubeConfig and the API](14-kubeconfig-and-the-api/) | 155, 157, 159 | CKA 13 | **built** |
 | 15 | [Certificates API and Authorization Modes](15-certificates-api-and-authorization/) | 152, 154, 160, 161, 163, 164, 166 | CKA 14, Day 19 | **built** |
-| 16 | Service Accounts | 167, 169 | CKA 15 | to build |
+| 16 | [Service Accounts](16-service-accounts/) | 167, 169 | CKA 15 | **built** |
 | 17 | Image Security and Security Contexts | 170, 172, 173, 174, 176 | Day 08 | to build |
 | 18 | Network Policies | 177, 178, 180 | Day 06, Day 12 | to build |
 | 19 | CRDs, Custom Controllers, Operators | 182, 184, 185 | Day 15 | to build |

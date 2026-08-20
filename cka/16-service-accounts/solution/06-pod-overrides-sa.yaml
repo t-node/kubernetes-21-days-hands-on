@@ -1,0 +1,14 @@
+# no-token-sa says automountServiceAccountToken: false.
+# This POD says true. The pod-level setting wins -- the token IS mounted.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-overrides
+  namespace: cka16
+spec:
+  serviceAccountName: no-token-sa
+  automountServiceAccountToken: true      # <- overrides the ServiceAccount
+  containers:
+    - name: client
+      image: curlimages/curl:8.10.1
+      command: ["sleep", "3600"]

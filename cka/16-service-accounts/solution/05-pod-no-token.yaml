@@ -1,0 +1,15 @@
+# No credential is mounted at all -- the /var/run/secrets/kubernetes.io
+# directory does not exist inside this container.
+#
+# This is what every pod that does not talk to the API should look like.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: no-token
+  namespace: cka16
+spec:
+  serviceAccountName: no-token-sa
+  containers:
+    - name: client
+      image: curlimages/curl:8.10.1
+      command: ["sleep", "3600"]

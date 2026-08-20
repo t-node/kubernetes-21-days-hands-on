@@ -1,0 +1,12 @@
+# Names no ServiceAccount, so the ServiceAccount admission controller injects
+# `default` and mounts its token. The pod can authenticate and can do nothing.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: uses-default
+  namespace: cka16
+spec:
+  containers:
+    - name: client
+      image: curlimages/curl:8.10.1
+      command: ["sleep", "3600"]
