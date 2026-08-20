@@ -1,7 +1,7 @@
 # CKA 05 — The Certificates API and Authorization Modes
 
 **Time:** 75-90 minutes
-**Prerequisites:** [CKA 04](../04-kubeconfig-and-the-api/), [Day 19](../../days/day-19-rbac/)
+**Prerequisites:** [CKA 04](../14-kubeconfig-and-the-api/), [Day 19](../../days/day-19-rbac/)
 
 Day 19 showed you the certificate flow for onboarding a user and then said
 "read this, do not run it". Today you run it — properly, through the Kubernetes
@@ -373,7 +373,7 @@ Binding to groups is how real teams do it: issue certificates with the right
 ```bash
 cd /tmp/cka05
 bash "$OLDPWD/solution/make-hostile-csr.sh" 2>/dev/null || \
-  bash /c/Users/Admin/kubernetes-21-days-hands-on/cka/05-certificates-api-and-authorization/solution/make-hostile-csr.sh
+  bash /c/Users/Admin/kubernetes-21-days-hands-on/cka/15-certificates-api-and-authorization/solution/make-hostile-csr.sh
 
 kubectl get csr
 ```

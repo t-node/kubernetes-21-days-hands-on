@@ -38,7 +38,7 @@ ServiceAccounts, by contrast, **are** real API objects — they are identities f
 > Webhook, and AlwaysAllow/AlwaysDeny, set together on the API server with
 > `--authorization-mode=Node,RBAC`. If that flag is absent it defaults to
 > **AlwaysAllow** and every RBAC rule in this day becomes decorative.
-> [CKA 05](../../cka/05-certificates-api-and-authorization/) covers the chain.
+> [CKA 05](../../cka/15-certificates-api-and-authorization/) covers the chain.
 
 ### 19.2 The four objects
 
@@ -404,7 +404,7 @@ default, in a pod that has no use for it.
 
 > **This section used to say "read this, do not run it."** There is now a full
 > hands-on lab for it: **[CKA 05 — the Certificates API and authorization
-> modes](../../cka/05-certificates-api-and-authorization/)** walks the whole
+> modes](../../cka/15-certificates-api-and-authorization/)** walks the whole
 > flow — generate a key, submit a `CertificateSigningRequest`, approve it,
 > extract the certificate, build a kubeconfig, and discover the new user is
 > authenticated but authorised for nothing. It also covers denying a hostile

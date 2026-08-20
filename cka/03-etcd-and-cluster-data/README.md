@@ -1,7 +1,7 @@
 # CKA 02 — etcd and Cluster Data
 
 **Time:** 60-75 minutes
-**Prerequisites:** [Day 01](../../days/day-01-architecture-and-kind-cluster/), [CKA 01](../01-container-runtimes-and-crictl/)
+**Prerequisites:** [Day 01](../../days/day-01-architecture-and-kind-cluster/), [CKA 01](../02-container-runtimes-and-crictl/)
 
 Day 01 told you etcd holds all cluster state and that backing it up is the
 number one operational task. Then it never let you touch it. This day fixes

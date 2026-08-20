@@ -451,9 +451,9 @@ docker exec devops-control-plane sh -c "grep -E '^\s+- --' /etc/kubernetes/manif
 ```
 
 > Two related deep-dives now live in the **[CKA track](../../cka/)**:
-> [container runtimes and `crictl`](../../cka/01-container-runtimes-and-crictl/)
+> [container runtimes and `crictl`](../../cka/02-container-runtimes-and-crictl/)
 > for debugging a node when `kubectl` itself is down, and
-> [etcd](../../cka/02-etcd-and-cluster-data/) for reading your cluster's data
+> [etcd](../../cka/03-etcd-and-cluster-data/) for reading your cluster's data
 > out of the datastore directly.
 
 ### Step 7: Understand kubeconfig

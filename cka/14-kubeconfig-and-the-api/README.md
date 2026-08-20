@@ -1,7 +1,7 @@
 # CKA 04 — KubeConfig and the Kubernetes API
 
 **Time:** 60-75 minutes
-**Prerequisites:** [Day 01](../../days/day-01-architecture-and-kind-cluster/), [CKA 02](../02-etcd-and-cluster-data/)
+**Prerequisites:** [Day 01](../../days/day-01-architecture-and-kind-cluster/), [CKA 02](../03-etcd-and-cluster-data/)
 
 Day 01 showed you `kubectl config current-context` and moved on. That is not
 enough: on the exam you will be handed a kubeconfig with four clusters, told to
@@ -566,4 +566,4 @@ curl -s --cert c.crt --key c.key --cacert ca.crt https://SERVER:6443/apis
 
 ---
 
-**Next: [CKA 05 — Certificates API and authorization modes](../05-certificates-api-and-authorization/)**
+**Next: [CKA 05 — Certificates API and authorization modes](../15-certificates-api-and-authorization/)**

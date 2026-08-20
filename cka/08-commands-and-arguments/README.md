@@ -1,7 +1,7 @@
 # CKA 03 — Commands and Arguments
 
 **Time:** 60-75 minutes
-**Prerequisites:** [Day 02](../../days/day-02-kubectl-and-your-first-pod/), [CKA 01](../01-container-runtimes-and-crictl/)
+**Prerequisites:** [Day 02](../../days/day-02-kubectl-and-your-first-pod/), [CKA 01](../02-container-runtimes-and-crictl/)
 
 Two fields, `command` and `args`, that map onto two Dockerfile instructions,
 `ENTRYPOINT` and `CMD` — **not in the order most people assume**. Getting this

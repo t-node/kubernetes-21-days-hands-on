@@ -408,4 +408,4 @@ kubectl get node <n> -o jsonpath='{.status.nodeInfo.containerRuntimeVersion}{"\n
 
 ---
 
-**Next: [CKA 02 — etcd and cluster data](../02-etcd-and-cluster-data/)**
+**Next: [CKA 02 — etcd and cluster data](../03-etcd-and-cluster-data/)**

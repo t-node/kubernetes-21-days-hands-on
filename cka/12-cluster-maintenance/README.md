@@ -1,7 +1,7 @@
 # CKA 06 — Cluster Maintenance: Upgrades, Drains and etcd Backup/Restore
 
 **Time:** 90-120 minutes
-**Prerequisites:** [CKA 02](../02-etcd-and-cluster-data/), [Day 18](../../days/day-18-scheduling-taints-affinity-daemonsets/)
+**Prerequisites:** [CKA 02](../03-etcd-and-cluster-data/), [Day 18](../../days/day-18-scheduling-taints-affinity-daemonsets/)
 
 CKA 02 stopped short of backup and restore and said so. This day finishes it.
 
