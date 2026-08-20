@@ -1,0 +1,12 @@
+# Declares no securityContext at all. The MUTATING webhook injects
+# runAsNonRoot: true and runAsUser: 1234 before this object is stored.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-with-defaults
+  namespace: cka07
+spec:
+  containers:
+    - name: app
+      image: nginx:alpine
+      command: ["sleep", "3600"]

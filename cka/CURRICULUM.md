@@ -27,7 +27,7 @@ column back into the 21 days when you need ground under a topic.
 ---
 ## The assignments
 
-33 assignments. **10 built, 23 to build.**
+33 assignments. **11 built, 22 to build.**
 
 
 ### Core Concepts
@@ -45,7 +45,7 @@ column back into the 21 days when you need ground under a topic.
 |---|---|---|---|---|
 | 05 | [Manual Scheduling and Static Pods](05-manual-scheduling-and-static-pods/) | 50, 51, 53, 72, 74 | Day 18 | **built** |
 | 06 | [Priority Classes, Multiple Schedulers, Profiles](06-priority-schedulers-profiles/) | 75, 77, 79, 80 | CKA 05 | **built** |
-| 07 | Admission Controllers | 81, 83, 84, 86 | CKA 15 | to build |
+| 07 | [Admission Controllers](07-admission-controllers/) | 81, 83, 84, 86 | CKA 15 | **built** |
 
 ### Application Lifecycle Management
 

@@ -1,0 +1,60 @@
+# The webhook server itself: stock python image, code from a ConfigMap,
+# certificate from a Secret. No custom image to build or load.
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webhook-server
+  namespace: webhook-demo
+  labels: {app: webhook-server}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: webhook-server}
+  template:
+    metadata:
+      labels: {app: webhook-server}
+    spec:
+      containers:
+        - name: server
+          image: python:3.12-alpine
+          command: ["python", "-u", "/app/server.py"]
+          ports:
+            - containerPort: 8443
+              name: https
+          volumeMounts:
+            - name: code
+              mountPath: /app
+              readOnly: true
+            - name: tls
+              mountPath: /tls
+              readOnly: true
+          resources:
+            requests: {cpu: "20m", memory: "48Mi"}
+          readinessProbe:
+            httpGet: {path: /healthz, port: 8443, scheme: HTTPS}
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          livenessProbe:
+            httpGet: {path: /healthz, port: 8443, scheme: HTTPS}
+            initialDelaySeconds: 10
+      volumes:
+        - name: code
+          configMap:
+            name: webhook-server-code
+        - name: tls
+          secret:
+            secretName: webhook-server-tls
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webhook-service
+  namespace: webhook-demo
+spec:
+  selector: {app: webhook-server}
+  ports:
+    # The API server always dials port 443 unless clientConfig.service.port says
+    # otherwise. The container listens on 8443, so the Service bridges the two.
+    - port: 443
+      targetPort: 8443

@@ -1,0 +1,62 @@
+# CA_BUNDLE_PLACEHOLDER is replaced by deploy-webhook.sh with the base64 CA cert.
+# Apply this file through that script, not directly.
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: pod-policy-mutate.example.com
+webhooks:
+  - name: pod-policy-mutate.example.com     # must be a qualified domain name
+    clientConfig:
+      service:
+        name: webhook-service
+        namespace: webhook-demo
+        path: /mutate
+        port: 443
+      caBundle: CA_BUNDLE_PLACEHOLDER
+    rules:
+      - operations: ["CREATE"]
+        apiGroups: [""]
+        apiVersions: ["v1"]
+        resources: ["pods"]
+        scope: "Namespaced"
+    admissionReviewVersions: ["v1"]
+    sideEffects: None
+    failurePolicy: Ignore        # mutation is a convenience -- do not block on it
+    timeoutSeconds: 5
+    # THE BLAST-RADIUS GUARD. Without this, a dead webhook plus failurePolicy:
+    # Fail means kube-system cannot start pods -- including this webhook.
+    namespaceSelector:
+      matchExpressions:
+        - key: kubernetes.io/metadata.name
+          operator: NotIn
+          values: ["kube-system", "kube-public", "kube-node-lease", "webhook-demo", "local-path-storage"]
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: pod-policy-validate.example.com
+webhooks:
+  - name: pod-policy-validate.example.com
+    clientConfig:
+      service:
+        name: webhook-service
+        namespace: webhook-demo
+        path: /validate
+        port: 443
+      caBundle: CA_BUNDLE_PLACEHOLDER
+    rules:
+      - operations: ["CREATE"]
+        apiGroups: [""]
+        apiVersions: ["v1"]
+        resources: ["pods"]
+        scope: "Namespaced"
+    admissionReviewVersions: ["v1"]
+    sideEffects: None
+    failurePolicy: Fail          # a policy that can be skipped is not a policy
+    timeoutSeconds: 5
+    namespaceSelector:
+      matchExpressions:
+        - key: kubernetes.io/metadata.name
+          operator: NotIn
+          values: ["kube-system", "kube-public", "kube-node-lease", "webhook-demo", "local-path-storage"]

@@ -1,0 +1,14 @@
+# Explicitly opts out. The mutating webhook leaves runAsNonRoot alone and does
+# NOT stamp a UID, so this container really does run as root.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-with-override
+  namespace: cka07
+spec:
+  securityContext:
+    runAsNonRoot: false
+  containers:
+    - name: app
+      image: nginx:alpine
+      command: ["sleep", "3600"]

@@ -1,0 +1,16 @@
+# DELIBERATELY INVALID. runAsNonRoot: true and runAsUser: 0 (root) contradict
+# each other. The VALIDATING webhook rejects this at admission -- the pod is
+# never stored, so there is nothing to describe afterwards.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-with-conflict
+  namespace: cka07
+spec:
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 0
+  containers:
+    - name: app
+      image: nginx:alpine
+      command: ["sleep", "3600"]

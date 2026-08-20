@@ -1,0 +1,57 @@
+# ValidatingAdmissionPolicy -- GA in Kubernetes 1.30.
+# The same class of rule as a validating webhook, but the expression is
+# evaluated INSIDE the API server. No server, no TLS, no failurePolicy cliff.
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: pod-image-and-label-policy
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["pods"]
+  validations:
+    # CEL. `object` is the incoming pod; `all` is a macro over a list.
+    - expression: "object.spec.containers.all(c, !c.image.endsWith(':latest'))"
+      message: "the :latest tag is not permitted -- pin an explicit version"
+      reason: Invalid
+
+    - expression: "object.spec.containers.all(c, c.image.contains(':'))"
+      message: "images must carry an explicit tag"
+      reason: Invalid
+
+    - expression: "has(object.metadata.labels) && 'owner' in object.metadata.labels"
+      message: "every pod must carry an 'owner' label"
+      reason: Invalid
+---
+# A POLICY defines the rule. A BINDING says where it applies and what to do.
+# One policy can have many bindings with different scopes and different actions.
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: pod-image-and-label-policy-enforce
+spec:
+  policyName: pod-image-and-label-policy
+  validationActions: ["Deny"]
+  matchResources:
+    namespaceSelector:
+      matchLabels:
+        policy: enforce
+---
+# The same policy, only warning. Use this to roll a rule out to a namespace and
+# see what it WOULD have rejected before you turn it on.
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: pod-image-and-label-policy-warn
+spec:
+  policyName: pod-image-and-label-policy
+  validationActions: ["Warn", "Audit"]
+  matchResources:
+    namespaceSelector:
+      matchLabels:
+        policy: warn

@@ -1,0 +1,12 @@
+# No storageClassName. The DefaultStorageClass admission controller adds one.
+# Disable that controller and this PVC stays Pending forever.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: demo-pvc
+  namespace: default
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 100Mi
