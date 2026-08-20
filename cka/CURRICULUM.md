@@ -27,7 +27,7 @@ column back into the 21 days when you need ground under a topic.
 ---
 ## The assignments
 
-33 assignments. **25 built, 8 to build.**
+33 assignments. **26 built, 7 to build.**
 
 
 ### Core Concepts
@@ -94,7 +94,7 @@ column back into the 21 days when you need ground under a topic.
 
 | # | Assignment | Lectures | Builds on | Status |
 |---|---|---|---|---|
-| 26 | Cluster Design and High Availability | 239, 240, 241, 242 | CKA 03, CKA 12 | to build |
+| 26 | [Cluster Design and High Availability](26-cluster-design-and-ha/) | 239, 240, 241, 242 | CKA 03, CKA 12 | **built** |
 
 ### Install kubeadm way
 

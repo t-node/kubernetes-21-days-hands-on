@@ -803,4 +803,4 @@ kubectl get referencegrant -A
 ---
 
 **Previous:** [CKA 24 — DNS and CoreDNS](../24-dns-and-coredns/)
-**Next: CKA 26 — Cluster Design and High Availability** *(not yet built — see [CURRICULUM.md](../CURRICULUM.md))*
+**Next:** [CKA 26 — Cluster Design and High Availability](../26-cluster-design-and-ha/)

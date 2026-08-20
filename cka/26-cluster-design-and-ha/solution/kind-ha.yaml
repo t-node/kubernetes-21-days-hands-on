@@ -1,0 +1,26 @@
+# A genuinely highly-available cluster: THREE control-plane nodes and one worker.
+#
+#   kind create cluster --config solution/kind-ha.yaml
+#
+# kind notices there is more than one control-plane node and automatically
+# creates a fifth container -- `ha-lab-external-load-balancer`, running HAProxy
+# -- in front of the three API servers (26.4). Your kubeconfig points at that,
+# not at any one node.
+#
+# Three control planes means a THREE-MEMBER stacked etcd cluster: quorum 2,
+# fault tolerance 1 (26.5). That is what Part 2 takes apart.
+#
+# Cost: five containers. If your machine is tight, drop the worker -- the
+# control-plane nodes will run workloads once you remove their taint.
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: ha-lab
+nodes:
+  - role: control-plane
+    image: kindest/node:v1.31.4
+  - role: control-plane
+    image: kindest/node:v1.31.4
+  - role: control-plane
+    image: kindest/node:v1.31.4
+  - role: worker
+    image: kindest/node:v1.31.4
