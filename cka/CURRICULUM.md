@@ -9,7 +9,6 @@ ones before it. Where a topic is already taught in the 21-day track, the
 assignment says so and links there rather than repeating it.
 
 ---
-
 ## How the two tracks fit together
 
 | | **21 Days** | **CKA assignments** |
@@ -18,23 +17,21 @@ assignment says so and links there rather than repeating it.
 | Shape | a single app, evolved daily | topic-by-topic, exam-shaped |
 | Start here if | you are new to Kubernetes | you can already deploy an app |
 
-**Recommended path:** Days 01-21 first, then CKA 01-33 in order. If you are
-short on time and already deploy to Kubernetes at work, start at CKA 01 and
-follow the *Builds on* column back into the 21 days when you need the ground
-under a topic.
+**Recommended path:** Days 01-21 first, then CKA 01-33 in order. If you
+already deploy to Kubernetes at work, start at CKA 01 and follow the
+*Builds on* column back into the 21 days when you need ground under a topic.
 
 ---
-
 ## The assignments
 
-33 assignments. **6 built, 27 to build.**
+33 assignments. **7 built, 26 to build.**
 
 
 ### Core Concepts
 
 | # | Assignment | Lectures | Builds on | Status |
 |---|---|---|---|---|
-| 01 | Control Plane Components in Depth | 14, 15, 16, 17 | Day 01 | to build |
+| 01 | [Control Plane Components in Depth](01-control-plane-components/) | 14, 15, 16, 17 | Day 01 | **built** |
 | 02 | [Container Runtimes: CRI, OCI, crictl](02-container-runtimes-and-crictl/) | 8, 9 | Day 01 | **built** |
 | 03 | [etcd and Cluster Data](03-etcd-and-cluster-data/) | 10, 11, 12 | CKA 02 | **built** |
 | 04 | Imperative vs Declarative, and kubectl apply | 41, 43, 45, 46, 48 | Day 02 | to build |
@@ -134,11 +131,10 @@ under a topic.
 | 33 | Mock Exam Task Bank | 302, 304, 306 | everything | to build |
 
 ---
-
 ## Lectures already covered by the 21-day track
 
 These need no CKA assignment — the main track teaches them, often in more
-depth than the source course, because it applies them to a real application.
+depth, because it applies them to a real application.
 
 | Lecture | Title | Covered by |
 |---:|---|---|
@@ -191,11 +187,10 @@ depth than the source course, because it applies them to a real application.
 | 311 | What's Next? | Capstone |
 
 ---
-
 ## Full lecture index
 
-Every lecture, in course order, with where it lands. `-` means the export
-carried no transcript for it (a quiz or a hands-on lab with no narration).
+Every lecture in course order. `-` means the export carried no transcript
+(a quiz, or a hands-on lab with no narration).
 
 | # | Lecture | Section | Assignment |
 |---:|---|---|---|
