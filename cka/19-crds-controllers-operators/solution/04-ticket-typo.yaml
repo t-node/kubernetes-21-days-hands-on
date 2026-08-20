@@ -1,0 +1,17 @@
+# VALID, and quietly wrong.
+#
+# `nubmer` is not in the schema, so it is PRUNED -- deleted on the way in with
+# no error and no warning. The ticket is then created with number defaulted to
+# 1 rather than the 5 the author meant.
+#
+# This is the failure mode that makes people distrust CRDs. Compare what you
+# wrote here against `kubectl get ft typo-ticket -o yaml`.
+apiVersion: flights.example.com/v1
+kind: FlightTicket
+metadata:
+  name: typo-ticket
+  namespace: cka19
+spec:
+  from: Delhi
+  to: Singapore
+  nubmer: 5

@@ -711,4 +711,4 @@ egress:
 ---
 
 **Previous:** [CKA 17 — Image Security and Security Contexts](../17-image-security-and-security-contexts/)
-**Next: CKA 19 — CRDs, Custom Controllers and Operators** *(not yet built — see [CURRICULUM.md](../CURRICULUM.md))*
+**Next:** [CKA 19 — Custom Resources, Controllers and Operators](../19-crds-controllers-operators/)

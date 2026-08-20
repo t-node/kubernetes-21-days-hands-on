@@ -1,0 +1,65 @@
+# The CustomResourceDefinition. After applying this, `FlightTicket` is a first
+# class kind: kubectl get/describe/edit/delete all work, RBAC can name it, and
+# it appears in `kubectl api-resources`.
+#
+# It still does NOTHING until the controller in 05 is running.
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  # MUST be exactly <plural>.<group>. The API server rejects anything else.
+  name: flighttickets.flights.example.com
+spec:
+  group: flights.example.com
+  scope: Namespaced
+  names:
+    kind: FlightTicket
+    plural: flighttickets
+    singular: flightticket
+    shortNames: ["ft"]
+    categories: ["travel"]
+  versions:
+    - name: v1
+      served: true
+      storage: true            # exactly one version may set this
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              required: ["from", "to"]
+              properties:
+                from:
+                  type: string
+                  minLength: 3
+                to:
+                  type: string
+                  minLength: 3
+                number:
+                  type: integer
+                  minimum: 1
+                  maximum: 10
+                  default: 1        # applied by the API server on create
+                class:
+                  type: string
+                  enum: ["economy", "business", "first"]
+                  default: "economy"
+            status:
+              type: object
+              properties:
+                state:
+                  type: string
+                confirmation:
+                  type: string
+      # Without these, `kubectl get ft` shows only NAME and AGE.
+      additionalPrinterColumns:
+        - {name: From,    type: string, jsonPath: .spec.from}
+        - {name: To,      type: string, jsonPath: .spec.to}
+        - {name: Seats,   type: integer, jsonPath: .spec.number}
+        - {name: State,   type: string, jsonPath: .status.state}
+        - {name: Booking, type: string, jsonPath: .status.confirmation}
+        - {name: Age,     type: date,   jsonPath: .metadata.creationTimestamp}
+      subresources:
+        # Splits spec (yours) from status (the controller's). With this enabled,
+        # `kubectl apply` can no longer write status at all.
+        status: {}

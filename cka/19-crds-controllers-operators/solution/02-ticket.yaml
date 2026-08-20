@@ -1,0 +1,10 @@
+apiVersion: flights.example.com/v1
+kind: FlightTicket
+metadata:
+  name: mumbai-london
+  namespace: cka19
+spec:
+  from: Mumbai
+  to: London
+  number: 2
+  class: business

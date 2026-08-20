@@ -27,7 +27,7 @@ column back into the 21 days when you need ground under a topic.
 ---
 ## The assignments
 
-33 assignments. **18 built, 15 to build.**
+33 assignments. **19 built, 14 to build.**
 
 
 ### Core Concepts
@@ -72,7 +72,7 @@ column back into the 21 days when you need ground under a topic.
 | 16 | [Service Accounts](16-service-accounts/) | 167, 169 | CKA 15 | **built** |
 | 17 | [Image Security and Security Contexts](17-image-security-and-security-contexts/) | 170, 172, 173, 174, 176 | Day 08 | **built** |
 | 18 | [Network Policies](18-network-policies/) | 177, 178, 180 | Day 06, Day 12 | **built** |
-| 19 | CRDs, Custom Controllers, Operators | 182, 184, 185 | Day 15 | to build |
+| 19 | [CRDs, Custom Controllers, Operators](19-crds-controllers-operators/) | 182, 184, 185 | Day 15 | **built** |
 
 ### Storage
 

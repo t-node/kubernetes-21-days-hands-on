@@ -1,0 +1,99 @@
+# The custom controller, deployed the way any controller is: a ServiceAccount,
+# RBAC for exactly the verbs it needs, and a Deployment.
+#
+# CRD + this = an operator (19.7). There is no other ingredient.
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: flight-controller
+  namespace: cka19
+---
+# Cluster-scoped because the controller watches FlightTickets in EVERY
+# namespace. Narrow it to a Role if you only ever want one.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: flight-controller
+rules:
+  # observe the custom resource
+  - apiGroups: ["flights.example.com"]
+    resources: ["flighttickets"]
+    verbs: ["get", "list", "watch"]
+  # report into .status -- a SEPARATE permission from writing the object
+  - apiGroups: ["flights.example.com"]
+    resources: ["flighttickets/status"]
+    verbs: ["get", "patch", "update"]
+  # act: create the child object
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: flight-controller
+subjects:
+  - kind: ServiceAccount
+    name: flight-controller
+    namespace: cka19
+roleRef:
+  kind: ClusterRole
+  name: flight-controller
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: flight-controller-code
+  namespace: cka19
+# Populated by deploy-controller.sh from controller/reconcile.sh, so the script
+# stays a readable file on disk instead of an unreadable YAML string.
+data:
+  reconcile.sh: |
+    echo "placeholder -- run: bash solution/deploy-controller.sh"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flight-controller
+  namespace: cka19
+  labels: {app: flight-controller}
+spec:
+  replicas: 1          # a real controller would use leader election instead
+  selector:
+    matchLabels: {app: flight-controller}
+  template:
+    metadata:
+      labels: {app: flight-controller}
+    spec:
+      serviceAccountName: flight-controller
+      containers:
+        - name: controller
+          image: bitnami/kubectl:1.31.4
+          command: ["/bin/sh", "/code/reconcile.sh"]
+          env:
+            # readOnlyRootFilesystem is on, and kubectl writes a discovery cache
+            # under $HOME/.kube. Point HOME at a writable emptyDir or every
+            # kubectl call fails with a permission error.
+            - name: HOME
+              value: /tmp
+          volumeMounts:
+            - name: code
+              mountPath: /code
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+          resources:
+            requests: {cpu: "20m", memory: "48Mi"}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+      volumes:
+        - name: code
+          configMap:
+            name: flight-controller-code
+        - name: tmp
+          emptyDir: {}
