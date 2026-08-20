@@ -1,0 +1,22 @@
+# Constrains INDIVIDUAL containers, and - most usefully - supplies defaults so
+# that pods without explicit resources are still accepted under a ResourceQuota.
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: devboard-limits
+  namespace: devboard
+spec:
+  limits:
+    - type: Container
+      default:                 # becomes the container's limits if unset
+        cpu: 200m
+        memory: 128Mi
+      defaultRequest:          # becomes the container's requests if unset
+        cpu: 50m
+        memory: 64Mi
+      min:
+        cpu: 10m
+        memory: 16Mi
+      max:
+        cpu: "1"
+        memory: 512Mi

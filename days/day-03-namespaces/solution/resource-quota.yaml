@@ -1,0 +1,20 @@
+# Caps the AGGREGATE resource consumption of the devboard namespace.
+#
+# WARNING: once requests.cpu / requests.memory appear here, every pod created in
+# this namespace MUST declare resource requests or it is rejected. Pair it with
+# limit-range.yaml so that pods without explicit resources still get defaults.
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: devboard-quota
+  namespace: devboard
+spec:
+  hard:
+    requests.cpu: "2"
+    requests.memory: 2Gi
+    limits.cpu: "4"
+    limits.memory: 4Gi
+    pods: "20"
+    services: "10"
+    persistentvolumeclaims: "5"
+    count/deployments.apps: "10"

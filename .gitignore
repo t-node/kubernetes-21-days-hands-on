@@ -1,0 +1,14 @@
+kubeconfig
+*.kubeconfig
+scratch/
+tmp/
+.vscode/
+.idea/
+*.swp
+.DS_Store
+__pycache__/
+*.pyc
+.venv/
+
+# fetched application source (someone else's repo)
+app/devboard/

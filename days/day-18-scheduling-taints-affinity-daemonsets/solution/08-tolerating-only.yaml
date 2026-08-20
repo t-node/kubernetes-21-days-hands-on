@@ -1,0 +1,29 @@
+# Break It D: toleration WITHOUT affinity.
+#
+# Every replica tolerates the database taint -- and they scatter across ALL
+# nodes, not just the tainted one. Permission is not attraction.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tolerating-only
+  namespace: devboard
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      demo: toleration
+  template:
+    metadata:
+      labels:
+        demo: toleration
+    spec:
+      tolerations:
+        - key: dedicated
+          operator: Equal
+          value: database
+          effect: NoSchedule
+      containers:
+        - name: app
+          image: nginx:1.27-alpine
+          resources:
+            requests: { cpu: 10m, memory: 16Mi }

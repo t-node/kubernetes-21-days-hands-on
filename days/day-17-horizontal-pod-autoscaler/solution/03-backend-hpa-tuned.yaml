@@ -1,0 +1,44 @@
+# The same HPA with explicit scaling BEHAVIOUR.
+#
+# The asymmetry is the lesson: scale up fast, scale down slowly.
+# Scaling up late costs an outage. Scaling down late costs a few minutes of CPU.
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: backend
+  namespace: devboard
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: backend
+  minReplicas: 2
+  maxReplicas: 10
+
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 50
+
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 0     # react immediately
+      policies:
+        - type: Percent
+          value: 100                    # at most double...
+          periodSeconds: 15
+        - type: Pods
+          value: 4                      # ...and at most +4 pods
+          periodSeconds: 15
+      selectPolicy: Max                 # take whichever allows MORE
+
+    scaleDown:
+      stabilizationWindowSeconds: 120   # 2 min of calm (default is 300)
+      policies:
+        - type: Percent
+          value: 50                     # shed at most half per minute
+          periodSeconds: 60
+      selectPolicy: Min                 # take whichever removes FEWER

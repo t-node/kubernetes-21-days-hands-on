@@ -1,0 +1,20 @@
+# The NORMAL ClusterIP Service clients use.
+#
+# Unchanged from Day 11 -- and that is the point. The backend still connects to
+# `postgres` and has no idea the workload became a StatefulSet.
+#
+# Real StatefulSets have BOTH: a headless one for peer identity, and a
+# load-balanced one for clients.
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: devboard
+spec:
+  type: ClusterIP
+  selector:
+    app: postgres
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: postgres

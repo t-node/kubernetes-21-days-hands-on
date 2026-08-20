@@ -1,0 +1,35 @@
+# Break It / Step 3: the SAME routing WITHOUT the rewrite.
+#
+# /api/tasks is forwarded to the backend unchanged. The Gin router has no
+# /api/tasks route, so it returns:
+#
+#   404 page not found
+#
+# Everything is healthy. Endpoints are populated. The app is broken.
+# This is the most common Ingress bug there is.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: devboard
+  namespace: devboard
+  # no rewrite-target annotation
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: devboard.local
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: backend
+                port:
+                  number: 8080
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: devboard-frontend
+                port:
+                  number: 80

@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-explicit
+  namespace: devboard      # lives here regardless of your current context
+  labels:
+    app: nginx
+spec:
+  containers:
+    - name: nginx
+      image: nginx:1.27-alpine

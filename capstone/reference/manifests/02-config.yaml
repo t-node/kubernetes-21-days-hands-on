@@ -1,0 +1,136 @@
+# All non-sensitive configuration. The password is NOT here.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: devboard-config
+  namespace: devboard
+  labels:
+    app.kubernetes.io/part-of: devboard
+data:
+  # Every value must be a STRING -- unquoted 8080 is an int64 and is rejected.
+  PORT: "8080"
+
+  # Database coordinates. POSTGRES_HOST must equal the Postgres Service name.
+  POSTGRES_HOST: "postgres"
+  POSTGRES_PORT: "5432"
+  POSTGRES_DB: "devboard"
+  POSTGRES_USER: "devboard"
+  POSTGRES_SSLMODE: "disable"     # in-cluster traffic; a mesh would give mTLS
+---
+# THE ONLY SENSITIVE VALUE IN THE SYSTEM.
+#
+# PLAINTEXT HERE IS A DELIBERATE TRADE so this repository is self-contained.
+# It would be a serious mistake in production, because git history is permanent:
+# a committed credential must be treated as compromised and rotated.
+#
+# What to do instead, best first:
+#   1. NO STATIC CREDENTIAL AT ALL -- IAM database authentication (RDS), or
+#      Vault dynamic credentials issued per pod and expiring.
+#   2. External Secrets Operator syncing from AWS Secrets Manager / Vault.
+#   3. Sealed Secrets or SOPS, so only ciphertext is ever committed.
+#
+# Note also: changing POSTGRES_PASSWORD here does NOT change the password of an
+# already-initialised database. That variable is read only on first init.
+# Rotation requires ALTER USER inside Postgres as well, coordinated so the app
+# is never presenting a credential the server has already changed.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: devboard-secrets
+  namespace: devboard
+  labels:
+    app.kubernetes.io/part-of: devboard
+type: Opaque
+stringData:
+  # stringData is write-only: the API server base64-encodes it into `data`.
+  # It avoids both encoding mistakes and the classic `echo` trailing newline.
+  #
+  # WARNING: this value goes into a DSN. A password containing @ / : ? or #
+  # must be URL-encoded, or the connection string becomes unparseable.
+  POSTGRES_PASSWORD: "devboard"
+---
+# The real DevBoard schema and seed, mounted at /docker-entrypoint-initdb.d/.
+#
+# Runs ONLY when the data directory is empty -- the first boot against a fresh
+# volume, never again. With a PersistentVolume that means EXACTLY ONCE, EVER.
+# Schema changes after that need a migration Job, not an edit here.
+#
+# Better practice, one source of truth:
+#   kubectl create configmap postgres-init -n devboard #     --from-file=app/devboard/init/postgres/ --dry-run=client -o yaml | kubectl apply -f -
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-init
+  namespace: devboard
+  labels:
+    app.kubernetes.io/part-of: devboard
+data:
+  01_schema.sql: |
+    -- DevBoard (advanced branch) — minimal schema: projects + tasks only.
+    -- No users table: this branch has no auth. assignee_id is just an int label.
+
+    CREATE TABLE IF NOT EXISTS projects (
+        id          SERIAL PRIMARY KEY,
+        name        VARCHAR(200) NOT NULL,
+        description TEXT,
+        owner_id    INTEGER,
+        created_at  TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+    );
+
+    CREATE TABLE IF NOT EXISTS tasks (
+        id          SERIAL PRIMARY KEY,
+        title       VARCHAR(300) NOT NULL,
+        description TEXT,
+        project_id  INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+        assignee_id INTEGER,
+        status      VARCHAR(20) NOT NULL DEFAULT 'todo'
+                    CHECK (status IN ('todo','in_progress','blocked','done')),
+        priority    VARCHAR(10) NOT NULL DEFAULT 'medium'
+                    CHECK (priority IN ('low','medium','high')),
+        due_date    DATE,
+        created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_tasks_project_id ON tasks(project_id);
+    CREATE INDEX IF NOT EXISTS idx_tasks_status     ON tasks(status);
+
+    -- Auto-update updated_at on row modifications.
+    CREATE OR REPLACE FUNCTION touch_updated_at() RETURNS TRIGGER AS $$
+    BEGIN
+        NEW.updated_at = NOW();
+        RETURN NEW;
+    END;
+    $$ LANGUAGE plpgsql;
+
+    DROP TRIGGER IF EXISTS tasks_touch_updated_at ON tasks;
+    CREATE TRIGGER tasks_touch_updated_at
+        BEFORE UPDATE ON tasks
+        FOR EACH ROW
+        EXECUTE FUNCTION touch_updated_at();
+
+  02_seed.sql: |
+    -- Seed data so the UI has something to render on first boot.
+    -- Mirrors the fundamentals branch's mock store: "DevBoard MVP" (id 1) with
+    -- 8 tasks across statuses, plus a small second project.
+
+    INSERT INTO projects (id, name, description, owner_id) VALUES
+        (1, 'DevBoard MVP',   'Ship the v1 task tracker', 1),
+        (2, 'Marketing Site', 'Landing page + launch blog', 1)
+    ON CONFLICT (id) DO NOTHING;
+
+    INSERT INTO tasks (title, description, project_id, assignee_id, status, priority, due_date) VALUES
+        ('Design the task schema',     'projects, tasks, statuses',     1, 1, 'done',        'high',   '2026-05-05'),
+        ('Build the kanban board',     'drag and drop columns',         1, 2, 'in_progress', 'high',   '2026-06-18'),
+        ('Wire up the dashboard hero', 'velocity + chip stats',         1, 1, 'in_progress', 'medium', '2026-06-20'),
+        ('Add the command bar',        'global search',                 1, 3, 'todo',        'medium', '2026-06-25'),
+        ('Dark mode polish',           'grain + gradients',             1, 2, 'todo',        'low',    NULL),
+        ('Fix flaky avatar colors',    'hash collision on initials',    1, 1, 'blocked',     'high',   '2026-06-15'),
+        ('Write component tests',      'Vitest + testing-library',      1, 3, 'todo',        'medium', NULL),
+        ('Ship the v1 release',        'tag and announce',              1, 1, 'todo',        'high',   '2026-06-30'),
+        ('Draft the launch blog post', '',                              2, 2, 'in_progress', 'medium', '2026-06-22'),
+        ('Hero illustration',          '',                              2, 3, 'todo',        'low',    NULL);
+
+    -- Keep the projects sequence past the explicit ids we inserted.
+    SELECT setval('projects_id_seq', (SELECT MAX(id) FROM projects));
+

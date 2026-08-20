@@ -1,0 +1,30 @@
+# Break It B: serviceName points at a Service that does not exist.
+#
+# THE PODS START NORMALLY. Nothing warns you. But no per-pod DNS records are
+# created, so anything relying on peer addressing silently fails:
+#
+#   kubectl run dns --rm -i -n devboard --image=busybox:1.36 --restart=Never -- \
+#     nslookup broken-sts-0.nonexistent-svc
+#   -> NXDOMAIN
+#
+# This is the nastier of the two failure modes precisely because it is silent.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: broken-sts
+  namespace: devboard
+spec:
+  serviceName: nonexistent-svc      # no such Service
+  replicas: 2
+  selector:
+    matchLabels:
+      app: broken-sts
+  template:
+    metadata:
+      labels:
+        app: broken-sts
+    spec:
+      containers:
+        - name: app
+          image: busybox:1.36
+          command: ["sh", "-c", "sleep 3600"]

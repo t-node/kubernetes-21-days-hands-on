@@ -1,0 +1,23 @@
+# Recreate: terminate every old pod BEFORE starting any new one.
+# There is downtime, deliberately. Use when two versions must never coexist -
+# an incompatible schema change, or a ReadWriteOnce volume only one pod can hold.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: devboard-batch
+  namespace: devboard
+spec:
+  replicas: 3
+  strategy:
+    type: Recreate            # note: no rollingUpdate block is allowed here
+  selector:
+    matchLabels:
+      app: devboard-batch
+  template:
+    metadata:
+      labels:
+        app: devboard-batch
+    spec:
+      containers:
+        - name: worker
+          image: nginx:1.25-alpine

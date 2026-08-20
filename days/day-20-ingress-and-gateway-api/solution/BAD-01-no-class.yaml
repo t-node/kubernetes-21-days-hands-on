@@ -1,0 +1,25 @@
+# Break It A: no ingressClassName.
+#
+# No controller claims it. ADDRESS stays empty forever. No error, no event,
+# nothing in any log. The object is simply inert.
+#
+# (An IngressClass carrying the annotation
+#  ingressclass.kubernetes.io/is-default-class: "true" would catch it.)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: orphan-ingress
+  namespace: devboard
+spec:
+  # ingressClassName: MISSING
+  rules:
+    - host: orphan.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: devboard-frontend
+                port:
+                  number: 80

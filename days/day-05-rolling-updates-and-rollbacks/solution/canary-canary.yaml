@@ -1,0 +1,22 @@
+# The "canary" 10%. Same app label, different track and version.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: canary-demo-canary
+  namespace: devboard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: canary-demo
+      track: canary
+  template:
+    metadata:
+      labels:
+        app: canary-demo      # the shared label the Service selects
+        track: canary
+        version: v2
+    spec:
+      containers:
+        - name: app
+          image: nginx:1.27-alpine

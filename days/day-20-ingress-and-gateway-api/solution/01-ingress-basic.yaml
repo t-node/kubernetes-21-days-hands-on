@@ -1,0 +1,44 @@
+# Path-based routing for DevBoard, with the /api rewrite.
+#
+# THE REWRITE IS THE IMPORTANT PART.
+#   browser asks for   /api/tasks
+#   Gin actually serves      /tasks
+#
+# vite preview was stripping the prefix (Day 12). Now the Ingress must do it:
+#   path: /api(/|$)(.*)     captures everything after /api into $2
+#   rewrite-target: /$2     forwards only that
+#
+# Remove the annotation and every API call 404s while every pod looks healthy.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: devboard
+  namespace: devboard
+  annotations:
+    # CONTROLLER-SPECIFIC. This exact annotation means nothing to Traefik or
+    # HAProxy. That non-portability is why the Gateway API exists.
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/use-regex: "true"
+spec:
+  ingressClassName: nginx        # WHICH controller should claim this object
+  rules:
+    - host: devboard.local
+      http:
+        paths:
+          # MORE SPECIFIC PATH FIRST. nginx sorts by length, but being explicit
+          # about ordering is a good habit across controllers.
+          - path: /api(/|$)(.*)
+            pathType: ImplementationSpecific    # required for regex captures
+            backend:
+              service:
+                name: backend                   # the Day 08 Service name
+                port:
+                  number: 8080
+
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: devboard-frontend
+                port:
+                  number: 80

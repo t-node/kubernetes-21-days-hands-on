@@ -1,0 +1,16 @@
+# Break It C: names a StorageClass that does not exist.
+#
+#   kubectl describe pvc bad-class -n devboard
+#   -> storageclass.storage.k8s.io "fast-ssd" not found
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: bad-class
+  namespace: devboard
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: fast-ssd
+  resources:
+    requests:
+      storage: 1Gi

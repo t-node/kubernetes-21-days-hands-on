@@ -1,0 +1,30 @@
+# Break It D: DELIBERATELY WRONG -- autoscaling on memory.
+#
+# Most runtimes do not RETURN memory when load falls. The Go allocator holds
+# pages, connection pools stay allocated, caches stay warm. So memory ratchets
+# upward, the HPA scales out, and it never has a reason to scale back in.
+#
+# Run the load generator, stop it, and watch the replica count stay high long
+# after CPU has returned to idle.
+#
+# CPU is the better default signal. A real load signal -- requests per second,
+# queue depth -- via a custom metrics adapter or KEDA is better still.
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: backend-memory
+  namespace: devboard
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: backend
+  minReplicas: 2
+  maxReplicas: 8
+  metrics:
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 60

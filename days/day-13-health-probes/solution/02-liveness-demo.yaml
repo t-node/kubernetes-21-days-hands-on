@@ -1,0 +1,29 @@
+# Watch liveness restart a wedged container.
+#
+# The container creates /tmp/healthy, then deletes it after 30 seconds.
+# The probe cats that file, so it starts failing at ~30s and the container is
+# killed and restarted -- over and over.
+#
+#   kubectl get pods -n devboard -l demo=liveness -w
+#   kubectl describe pod liveness-demo -n devboard | grep -A5 Events
+#
+# Note: RESTARTS climbs while READY stays 1/1. Liveness restarts the container
+# IN PLACE -- same pod, same name, same IP. It never reschedules to another node.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: liveness-demo
+  namespace: devboard
+  labels:
+    demo: liveness
+spec:
+  containers:
+    - name: app
+      image: busybox:1.36
+      command: ["sh", "-c", "touch /tmp/healthy; sleep 30; rm -f /tmp/healthy; sleep 600"]
+      livenessProbe:
+        exec:
+          command: ["cat", "/tmp/healthy"]
+        initialDelaySeconds: 5
+        periodSeconds: 5
+        failureThreshold: 2       # detects at roughly 30 + 10 seconds

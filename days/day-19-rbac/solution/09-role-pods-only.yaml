@@ -1,0 +1,27 @@
+# Break It A: `pods` does NOT include `pods/log`.
+#
+# This identity can see that a pod is CrashLoopBackOff but cannot read the logs
+# that explain why. Subresources are separate permissions -- always.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: pods-only
+  namespace: devboard
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]        # note: no "pods/log"
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pods-only-binding
+  namespace: devboard
+subjects:
+  - kind: ServiceAccount
+    name: devboard-podreader
+    namespace: devboard
+roleRef:
+  kind: Role
+  name: pods-only
+  apiGroup: rbac.authorization.k8s.io

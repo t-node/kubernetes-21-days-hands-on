@@ -1,0 +1,24 @@
+# Break It E: a DaemonSet has no `scale` subresource -- one pod per node is the
+# definition, so there is nothing to scale.
+#
+#   kubectl describe hpa bad-target -n devboard | grep -A4 Conditions
+#   -> AbleToScale False FailedGetScale
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: bad-target
+  namespace: devboard
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: DaemonSet
+    name: some-daemonset
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 50

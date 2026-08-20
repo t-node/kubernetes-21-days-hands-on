@@ -1,0 +1,23 @@
+# CPU is COMPRESSIBLE: exceeding the limit throttles, never kills.
+#
+# This burns a full core but is limited to 200m, so:
+#   kubectl top pod cpu-throttle -n devboard    -> pinned at ~200m
+#   kubectl get pod cpu-throttle -n devboard    -> Running, RESTARTS 0
+#
+# See the throttling itself:
+#   kubectl exec -n devboard cpu-throttle -- cat /sys/fs/cgroup/cpu.stat
+#   -> nr_throttled close to nr_periods means severe latency damage, even
+#      though nothing has crashed and average CPU looks modest.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: cpu-throttle
+  namespace: devboard
+spec:
+  containers:
+    - name: burner
+      image: busybox:1.36
+      command: ["sh", "-c", "while true; do :; done"]
+      resources:
+        requests: { cpu: 100m }
+        limits:   { cpu: 200m }

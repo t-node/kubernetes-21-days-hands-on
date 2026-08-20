@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: devboard
+  labels:
+    app: backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+        tier: api
+    spec:
+      containers:
+        - name: backend
+          image: devboard-backend:1.0
+          # REQUIRED for kind-loaded images -- without it a :latest tag sends
+          # the kubelet to Docker Hub and you get ImagePullBackOff.
+          imagePullPolicy: IfNotPresent
+
+          ports:
+            - containerPort: 8080
+              name: http
+
+          env:
+            # The Go app reads exactly two variables. Today they are hardcoded;
+            # Day 09 moves the non-secret parts to a ConfigMap and Day 10 builds
+            # POSTGRES_URL out of ConfigMap + Secret pieces.
+            - name: PORT
+              value: "8080"
+            - name: POSTGRES_URL
+              value: "postgres://devboard:devboard@postgres:5432/devboard?sslmode=disable"
+
+          # /health returns 200 whenever the PROCESS is alive -- it does not
+          # touch the database. That makes it a correct liveness probe and an
+          # inadequate readiness probe. Day 13 closes that gap.
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 3
+            periodSeconds: 5
+
+          resources:
+            requests:
+              cpu: 50m
+              memory: 32Mi
+            limits:
+              cpu: 300m
+              memory: 128Mi

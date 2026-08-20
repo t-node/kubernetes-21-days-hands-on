@@ -1,0 +1,116 @@
+# THE CORRECT SHAPE FOR AN HPA-MANAGED DEPLOYMENT.
+#
+# Note what is MISSING: there is no `replicas:` field.
+#
+# If you declare replicas AND run an HPA, every `kubectl apply` (or every
+# GitOps sync, which happens continuously) resets the count and the HPA then
+# corrects it -- capacity flaps up and down forever, most damagingly during
+# your busiest period.
+#
+# Omitting the field means Kubernetes defaults to 1 on FIRST create, and the
+# HPA immediately raises it to minReplicas. Re-applying afterwards leaves the
+# HPA's chosen count alone.
+#
+# The alternative, if your tooling requires the field, is to exclude it from
+# the sync (Argo CD: ignoreDifferences on /spec/replicas).
+#
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: devboard
+spec:
+  # replicas: intentionally ABSENT -- the HPA owns this field
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+        tier: api
+    spec:
+      automountServiceAccountToken: false
+      initContainers:
+        - name: wait-for-postgres
+          image: postgres:16-alpine
+          command:
+            - sh
+            - -c
+            - |
+              until pg_isready -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER"; do
+                echo "waiting for postgres ..."
+                sleep 2
+              done
+          env:
+            - name: POSTGRES_HOST
+              valueFrom:
+                configMapKeyRef: { name: devboard-config, key: POSTGRES_HOST }
+            - name: POSTGRES_PORT
+              valueFrom:
+                configMapKeyRef: { name: devboard-config, key: POSTGRES_PORT }
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef: { name: devboard-config, key: POSTGRES_USER }
+          resources:
+            requests: { cpu: 10m, memory: 16Mi }
+            limits:   { cpu: 100m, memory: 64Mi }
+
+      containers:
+        - name: backend
+          image: devboard-backend:1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+            - name: PORT
+              valueFrom:
+                configMapKeyRef: { name: devboard-config, key: PORT }
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef: { name: devboard-config, key: POSTGRES_USER }
+            - name: POSTGRES_HOST
+              valueFrom:
+                configMapKeyRef: { name: devboard-config, key: POSTGRES_HOST }
+            - name: POSTGRES_PORT
+              valueFrom:
+                configMapKeyRef: { name: devboard-config, key: POSTGRES_PORT }
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef: { name: devboard-config, key: POSTGRES_DB }
+            - name: POSTGRES_SSLMODE
+              valueFrom:
+                configMapKeyRef: { name: devboard-config, key: POSTGRES_SSLMODE }
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef: { name: devboard-secrets, key: POSTGRES_PASSWORD }
+            - name: POSTGRES_URL
+              value: "postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)?sslmode=$(POSTGRES_SSLMODE)"
+
+          livenessProbe:
+            httpGet: { path: /health, port: http }
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - "wget -q -O /dev/null http://127.0.0.1:${PORT}/health && nc -z ${POSTGRES_HOST} ${POSTGRES_PORT}"
+            initialDelaySeconds: 3
+            periodSeconds: 5
+            timeoutSeconds: 4
+            failureThreshold: 2
+
+          # REQUIRED for the HPA on Day 17: a CPU-target HPA computes
+          # utilisation as a PERCENTAGE OF THE REQUEST. No CPU request means no
+          # denominator, and the HPA reports <unknown> forever.
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 128Mi

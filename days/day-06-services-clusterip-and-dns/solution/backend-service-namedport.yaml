@@ -1,0 +1,15 @@
+# Same Service, but targetPort refers to the containerPort by NAME.
+# More robust: the container can change its port and only the Deployment edits.
+apiVersion: v1
+kind: Service
+metadata:
+  name: demo-backend
+  namespace: devboard
+spec:
+  type: ClusterIP
+  selector:
+    app: demo-backend
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http        # the NAME of the containerPort, not a number

@@ -1,0 +1,47 @@
+# THE APPLICATION DEVELOPER'S object. Exactly equivalent to 01-ingress-basic.yaml
+# -- compare them side by side, that diff IS today's lesson.
+#
+# The nginx annotation
+#     nginx.ingress.kubernetes.io/rewrite-target: /$2
+# becomes a TYPED, PORTABLE field:
+#     filters: [{type: URLRewrite, urlRewrite: {path: {...}}}]
+#
+# No regex capture groups, no vendor prefix, validated by the API server, and
+# identical on Envoy Gateway, Istio, Contour, Cilium or a cloud implementation.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: devboard
+  namespace: devboard
+spec:
+  parentRefs:
+    - name: devboard-gateway     # attach to the operator's Gateway
+      sectionName: http          # ...on this specific listener
+
+  hostnames:
+    - devboard.local
+
+  rules:
+    # /api/* -> backend, with the /api prefix stripped
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api
+      filters:
+        - type: URLRewrite
+          urlRewrite:
+            path:
+              type: ReplacePrefixMatch
+              replacePrefixMatch: /      # /api/tasks -> /tasks
+      backendRefs:
+        - name: backend
+          port: 8080
+
+    # everything else -> frontend
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: devboard-frontend
+          port: 80

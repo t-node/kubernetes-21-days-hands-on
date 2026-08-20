@@ -1,0 +1,52 @@
+# One pod of each QoS class, so you can see how the class is DERIVED from the
+# resources rather than declared.
+#
+#   kubectl get pods -n devboard -l demo=qos \
+#     -o custom-columns=NAME:.metadata.name,QOS:.status.qosClass
+apiVersion: v1
+kind: Pod
+metadata:
+  name: qos-besteffort
+  namespace: devboard
+  labels: { demo: qos }
+spec:
+  containers:
+    - name: app
+      image: busybox:1.36
+      command: ["sh", "-c", "sleep 3600"]
+      # NOTHING. No requests, no limits.
+      # -> BestEffort: scheduled anywhere, unbounded, evicted FIRST.
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: qos-burstable
+  namespace: devboard
+  labels: { demo: qos }
+spec:
+  containers:
+    - name: app
+      image: busybox:1.36
+      command: ["sh", "-c", "sleep 3600"]
+      resources:
+        # requests set, and NOT equal to limits -> Burstable
+        requests: { cpu: 50m,  memory: 32Mi }
+        limits:   { cpu: 200m, memory: 128Mi }
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: qos-guaranteed
+  namespace: devboard
+  labels: { demo: qos }
+spec:
+  containers:
+    - name: app
+      image: busybox:1.36
+      command: ["sh", "-c", "sleep 3600"]
+      resources:
+        # Only LIMITS are declared. Kubernetes copies them into requests,
+        # making them equal -> Guaranteed. Check with:
+        #   kubectl get pod qos-guaranteed -n devboard \
+        #     -o jsonpath='{.spec.containers[0].resources}'
+        limits: { cpu: 100m, memory: 64Mi }

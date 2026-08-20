@@ -1,0 +1,36 @@
+# A GatewayClass is normally created BY THE IMPLEMENTATION you install, not by
+# you -- exactly like a StorageClass comes with a CSI driver.
+#
+# Envoy Gateway installs one called `eg`. Check what you have:
+#   kubectl get gatewayclass
+#
+# The definition below is what one looks like. It is commented out because
+# applying a duplicate would conflict with the installer's own.
+#
+# ---------------------------------------------------------------------------
+# apiVersion: gateway.networking.k8s.io/v1
+# kind: GatewayClass
+# metadata:
+#   name: eg
+# spec:
+#   # This string tells a controller "this class is mine".
+#   controllerName: gateway.envoyproxy.io/gatewayclass-controller
+# ---------------------------------------------------------------------------
+#
+# WHO OWNS WHAT -- the whole point of the Gateway API:
+#
+#   GatewayClass  -> the infrastructure provider   (like a StorageClass)
+#   Gateway       -> the CLUSTER OPERATOR          (listeners, ports, TLS)
+#   HTTPRoute     -> the APPLICATION DEVELOPER     (paths, backends, filters)
+#
+# With Ingress, all three live in one object, so a developer editing a route can
+# change your TLS configuration. Here, RBAC splits cleanly along those lines.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gatewayclass-notes
+  namespace: devboard
+data:
+  README: |
+    This ConfigMap exists only so the file is applyable. Read the comments above.
+    Run `kubectl get gatewayclass` to see the class your implementation created.

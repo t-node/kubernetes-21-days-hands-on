@@ -1,0 +1,15 @@
+# Non-sensitive configuration for every tier.
+# The password is NOT here -- see 02-secret.yaml.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: devboard-config
+  namespace: devboard
+data:
+  # Every value must be a STRING. Unquoted 8080 is an int64 and is rejected.
+  PORT: "8080"
+  POSTGRES_HOST: "postgres"      # must equal the Postgres Service name
+  POSTGRES_PORT: "5432"
+  POSTGRES_DB: "devboard"
+  POSTGRES_USER: "devboard"
+  POSTGRES_SSLMODE: "disable"

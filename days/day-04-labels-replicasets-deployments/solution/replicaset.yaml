@@ -1,0 +1,21 @@
+# You would not write this in real life -- always use a Deployment.
+# It exists here so you can see what a ReplicaSet does on its own:
+# keep N pods matching the selector alive, with no notion of versions.
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: demo-rs
+  namespace: devboard
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: demo-rs
+  template:
+    metadata:
+      labels:
+        app: demo-rs
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.27-alpine

@@ -1,0 +1,123 @@
+# DELIBERATELY WRONG -- this is Break It exercise A.
+#
+# The liveness probe here checks POSTGRES. Scale Postgres to 0 and watch every
+# backend pod enter CrashLoopBackOff. When Postgres returns they all reconnect
+# at once and hammer it.
+#
+# You have converted a brief database outage into a self-sustaining one.
+# THIS IS THE MOST IMPORTANT ANTI-PATTERN IN THIS ENTIRE COURSE.
+#
+# The correct version is 01-backend-probes-exec.yaml.
+#
+# (was: THE FIX for DevBoard's probe design.)
+#
+#   liveness  -> /health   : the PROCESS only. Never a dependency. (unchanged)
+#   readiness -> exec      : ALSO verifies Postgres is reachable, so a database
+#                            outage removes pods from the Service instead of
+#                            restarting them.
+#
+# Result when Postgres goes away:  READY 0/1, RESTARTS 0, ENDPOINTS <none>.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: devboard
+  labels:
+    app: backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+        tier: api
+    spec:
+      automountServiceAccountToken: false
+
+      initContainers:
+        - name: wait-for-postgres
+          image: postgres:16-alpine
+          command:
+            - sh
+            - -c
+            - |
+              until pg_isready -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER"; do
+                echo "waiting for postgres ..."
+                sleep 2
+              done
+          env:
+            - name: POSTGRES_HOST
+              valueFrom:
+                configMapKeyRef: { name: devboard-config, key: POSTGRES_HOST }
+            - name: POSTGRES_PORT
+              valueFrom:
+                configMapKeyRef: { name: devboard-config, key: POSTGRES_PORT }
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef: { name: devboard-config, key: POSTGRES_USER }
+
+      containers:
+        - name: backend
+          image: devboard-backend:1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+              name: http
+
+          env:
+            - name: PORT
+              valueFrom:
+                configMapKeyRef: { name: devboard-config, key: PORT }
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef: { name: devboard-config, key: POSTGRES_USER }
+            - name: POSTGRES_HOST
+              valueFrom:
+                configMapKeyRef: { name: devboard-config, key: POSTGRES_HOST }
+            - name: POSTGRES_PORT
+              valueFrom:
+                configMapKeyRef: { name: devboard-config, key: POSTGRES_PORT }
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef: { name: devboard-config, key: POSTGRES_DB }
+            - name: POSTGRES_SSLMODE
+              valueFrom:
+                configMapKeyRef: { name: devboard-config, key: POSTGRES_SSLMODE }
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef: { name: devboard-secrets, key: POSTGRES_PASSWORD }
+            - name: POSTGRES_URL
+              value: "postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)?sslmode=$(POSTGRES_SSLMODE)"
+
+          # WRONG: liveness must NEVER check a dependency.
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - "nc -z ${POSTGRES_HOST} ${POSTGRES_PORT}"
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+
+          # READINESS: can this pod actually SERVE?
+          # Two checks: the app answers locally, AND Postgres accepts TCP.
+          # `nc -z` is available in the Alpine runtime image.
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - "wget -q -O /dev/null http://127.0.0.1:${PORT}/health && nc -z ${POSTGRES_HOST} ${POSTGRES_PORT}"
+            initialDelaySeconds: 3
+            periodSeconds: 5
+            timeoutSeconds: 4
+            failureThreshold: 2          # ~10s to leave rotation
+
+          resources:
+            requests: { cpu: 50m, memory: 32Mi }
+            limits:   { cpu: 300m, memory: 128Mi }

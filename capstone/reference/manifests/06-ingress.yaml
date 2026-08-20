@@ -1,0 +1,51 @@
+# The single entry point. Every Service in the namespace is ClusterIP; nothing
+# is reachable except through here.
+#
+# THE /api REWRITE IS LOAD-BEARING:
+#   the browser asks for /api/tasks
+#   the Gin router serves      /tasks
+#
+# vite preview used to strip the prefix. Now the Ingress must. Remove the
+# annotation and every API call 404s while every pod reports healthy.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: devboard
+  namespace: devboard
+  labels:
+    app.kubernetes.io/part-of: devboard
+  annotations:
+    # CONTROLLER-SPECIFIC. These mean nothing to Traefik or HAProxy, which is
+    # exactly the portability problem the Gateway API solves.
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "2m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "30"
+    # With cert-manager installed, this replaces make-cert.sh entirely:
+    # cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - devboard.local
+      secretName: devboard-tls      # created by make-cert.sh
+  rules:
+    - host: devboard.local
+      http:
+        paths:
+          # More specific first.
+          - path: /api(/|$)(.*)
+            pathType: ImplementationSpecific    # required for regex captures
+            backend:
+              service:
+                name: backend
+                port:
+                  number: 8080
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port:
+                  number: 80

@@ -1,0 +1,21 @@
+# Watch a container get OOMKilled.
+#
+# It allocates 100 MB against a 50Mi limit. The kernel kills it INSTANTLY --
+# no grace period, no chance to log anything.
+#
+#   kubectl describe pod oom-demo -n devboard | grep -A6 "Last State"
+#   -> Reason: OOMKilled, Exit Code: 137     (137 = 128 + 9 = SIGKILL)
+apiVersion: v1
+kind: Pod
+metadata:
+  name: oom-demo
+  namespace: devboard
+spec:
+  containers:
+    - name: hungry
+      image: busybox:1.36
+      # dd into tmpfs (/dev/shm) counts against the container's memory cgroup
+      command: ["sh", "-c", "echo allocating...; dd if=/dev/zero of=/dev/shm/fill bs=1M count=100; echo survived; sleep 3600"]
+      resources:
+        requests: { memory: 32Mi }
+        limits:   { memory: 50Mi }     # too small on purpose

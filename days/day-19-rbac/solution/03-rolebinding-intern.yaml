@@ -1,0 +1,22 @@
+# Grants devboard-viewer to the intern ServiceAccount, in this namespace only.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: devboard-intern-viewer
+  namespace: devboard
+subjects:
+  # ServiceAccount subjects take a `namespace` and NO apiGroup.
+  # User/Group subjects take an `apiGroup` and NO namespace. Mixing these up is
+  # one of the most common RBAC YAML errors.
+  - kind: ServiceAccount
+    name: devboard-intern
+    namespace: devboard
+  # A human user would look like this -- `intern` is just a string the
+  # authenticator asserts (a certificate CN, or an OIDC claim):
+  # - kind: User
+  #   name: intern
+  #   apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role                       # Role (namespaced) or ClusterRole
+  name: devboard-viewer
+  apiGroup: rbac.authorization.k8s.io

@@ -1,0 +1,21 @@
+# THE PATTERN TO ACTUALLY USE.
+#
+# A RoleBinding referencing a CLUSTER role. The permissions apply ONLY in this
+# RoleBinding's namespace. Define once cluster-wide, grant per namespace.
+#
+# Kubernetes ships `view`, `edit` and `admin` for exactly this. Note that `view`
+# deliberately EXCLUDES secrets.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: devboard-auditor-view
+  namespace: devboard
+subjects:
+  - kind: ServiceAccount
+    name: devboard-auditor
+    namespace: devboard
+roleRef:
+  kind: ClusterRole          # <- a CLUSTER role...
+  name: view                 # <- ...built in...
+  apiGroup: rbac.authorization.k8s.io
+# ...granted by a namespaced RoleBinding, so it applies in `devboard` only.

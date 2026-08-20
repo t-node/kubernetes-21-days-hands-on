@@ -1,0 +1,15 @@
+# A Retain variant of kind's default class.
+#
+# USE A CLASS LIKE THIS FOR EVERY DATABASE YOU CARE ABOUT.
+#
+# With the default Delete policy, `kubectl delete pvc` destroys the underlying
+# storage immediately and irreversibly, with no confirmation. With Retain the
+# PV survives as Released and the data is recoverable.
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: standard-retain
+provisioner: rancher.io/local-path      # kind's provisioner; change per cluster
+reclaimPolicy: Retain
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true

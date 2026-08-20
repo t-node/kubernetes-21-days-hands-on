@@ -1,0 +1,56 @@
+# kind = Kubernetes IN Docker.
+#
+# Every "node" below becomes a Docker container running a full node's worth of
+# Kubernetes components. `docker ps` after creating this cluster shows them.
+#
+# Create with:
+#   kind create cluster --config cluster/kind-config.yaml
+#
+# The cluster name here (devops) is what `kind load docker-image --name devops`
+# and `kubectl config use-context kind-devops` refer to.
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: devops
+
+nodes:
+  # ---------------------------------------------------------------- control plane
+  - role: control-plane
+    image: kindest/node:v1.31.4
+    # extraPortMappings punch holes from your laptop into the node container.
+    # Without these, a NodePort Service is reachable from inside the Docker
+    # network but NOT from your browser -- the #1 "why doesn't localhost work"
+    # confusion with kind.
+    extraPortMappings:
+      - containerPort: 30080      # frontend NodePort
+        hostPort: 30080
+        protocol: TCP
+      - containerPort: 30081      # backend NodePort (Day 07 experiments)
+        hostPort: 30081
+        protocol: TCP
+      - containerPort: 80         # ingress-nginx HTTP  (Day 20)
+        hostPort: 8080
+        protocol: TCP
+      - containerPort: 443        # ingress-nginx HTTPS (Day 20)
+        hostPort: 8443
+        protocol: TCP
+    # Required by ingress-nginx's kind deployment on Day 20. Harmless before then.
+    kubeadmConfigPatches:
+      - |
+        kind: InitConfiguration
+        nodeRegistration:
+          kubeletExtraArgs:
+            node-labels: "ingress-ready=true"
+
+  # ---------------------------------------------------------------- workers
+  - role: worker
+    image: kindest/node:v1.31.4
+    labels:
+      # Used on Day 18 for nodeSelector / affinity exercises.
+      disktype: ssd
+      tier: general
+
+  - role: worker
+    image: kindest/node:v1.31.4
+    labels:
+      disktype: hdd
+      tier: general

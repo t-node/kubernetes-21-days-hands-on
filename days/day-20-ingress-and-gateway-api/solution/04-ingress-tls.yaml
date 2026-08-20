@@ -1,0 +1,43 @@
+# TLS termination at the ingress controller.
+#
+# Requires a kubernetes.io/tls Secret (Day 10):
+#   kubectl create secret tls devboard-tls -n devboard --cert=tls.crt --key=tls.key
+#
+# In production you would NOT create that by hand -- cert-manager watches this
+# object, obtains a real Let's Encrypt certificate, and renews it. Uncomment the
+# cluster-issuer annotation once cert-manager is installed.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: devboard
+  namespace: devboard
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    # Redirect plain HTTP to HTTPS (this is the default; shown for clarity)
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    # cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - devboard.local
+      secretName: devboard-tls
+  rules:
+    - host: devboard.local
+      http:
+        paths:
+          - path: /api(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: backend
+                port:
+                  number: 8080
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: devboard-frontend
+                port:
+                  number: 80

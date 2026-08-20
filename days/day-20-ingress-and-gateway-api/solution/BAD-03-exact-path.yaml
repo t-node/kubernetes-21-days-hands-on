@@ -1,0 +1,25 @@
+# Break It C: pathType: Exact matches ONLY that exact path.
+#
+#   /api        -> matched
+#   /api/tasks  -> NOT matched (404 from the default backend)
+#
+# Prefix is almost always what you want. Exact is for single endpoints such as
+# a health check or a webhook receiver.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: exact-path
+  namespace: devboard
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: exact.local
+      http:
+        paths:
+          - path: /api
+            pathType: Exact
+            backend:
+              service:
+                name: backend
+                port:
+                  number: 8080

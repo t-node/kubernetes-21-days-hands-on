@@ -1,0 +1,17 @@
+# Binds to manual-pv. Every attribute must match:
+#   storageClassName: manual   (the same made-up class)
+#   accessModes: RWO           (offered by the PV)
+#   storage: 500Mi             (no more than the PV's 1Gi)
+# Change any one and it stays Pending forever.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: static-claim
+  namespace: devboard
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: manual
+  resources:
+    requests:
+      storage: 500Mi

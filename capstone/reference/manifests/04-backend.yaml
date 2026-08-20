@@ -1,0 +1,244 @@
+# Backend: Deployment + Service + HPA + PodDisruptionBudget
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend           # NOT a free choice -- the frontend image hardcodes
+  namespace: devboard     # http://backend:8080 in vite.preview.config.js
+  labels:
+    app.kubernetes.io/name: backend
+    app.kubernetes.io/part-of: devboard
+spec:
+  type: ClusterIP         # internal only; the Ingress is the single entry point
+  selector:
+    app.kubernetes.io/name: backend
+  ports:
+    - name: http
+      port: 8080          # NOT a free choice either
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: devboard
+  labels:
+    app.kubernetes.io/name: backend
+    app.kubernetes.io/component: api
+    app.kubernetes.io/part-of: devboard
+  annotations:
+    kubernetes.io/change-cause: "capstone: initial deploy 1.0"
+spec:
+  # NO `replicas` FIELD -- the HPA owns it. Declaring it here would mean every
+  # apply resets the count, the HPA corrects it, and capacity flaps.
+  revisionHistoryLimit: 5
+  minReadySeconds: 5
+  progressDeadlineSeconds: 300
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0     # never lose capacity...
+      maxSurge: 1           # ...add one, then remove one
+
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: backend
+
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: backend
+        app.kubernetes.io/component: api
+        app.kubernetes.io/part-of: devboard
+    spec:
+      serviceAccountName: devboard-backend
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 30
+
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001            # the appuser from backend.Dockerfile
+        runAsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+
+      # Spread across nodes WITHOUT the replica cap that required
+      # anti-affinity would impose. ScheduleAnyway means a scale-up never
+      # leaves pods permanently Pending.
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: backend
+
+      # Kubernetes has no depends_on. This is the closest equivalent: the app
+      # container does not start until Postgres accepts connections, so you get
+      # a legible Init:0/1 instead of a CrashLoopBackOff full of retry noise.
+      initContainers:
+        - name: wait-for-postgres
+          image: postgres:16-alpine
+          command:
+            - sh
+            - -c
+            - |
+              until pg_isready -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER"; do
+                echo "waiting for postgres at $POSTGRES_HOST:$POSTGRES_PORT ..."
+                sleep 2
+              done
+              echo "postgres is ready"
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          env:
+            - name: POSTGRES_HOST
+              valueFrom:
+                configMapKeyRef: { name: devboard-config, key: POSTGRES_HOST }
+            - name: POSTGRES_PORT
+              valueFrom:
+                configMapKeyRef: { name: devboard-config, key: POSTGRES_PORT }
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef: { name: devboard-config, key: POSTGRES_USER }
+          resources:
+            requests: { cpu: 10m, memory: 16Mi }
+            limits:   { cpu: 100m, memory: 64Mi }
+
+      containers:
+        - name: backend
+          image: devboard-backend:1.0
+          imagePullPolicy: IfNotPresent      # required for kind-loaded images
+          ports:
+            - containerPort: 8080
+              name: http
+
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true     # a static Go binary needs nothing writable
+            capabilities:
+              drop: ["ALL"]
+
+          env:
+            # The pieces first, so $(VAR) can interpolate them below.
+            - name: PORT
+              valueFrom:
+                configMapKeyRef: { name: devboard-config, key: PORT }
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef: { name: devboard-config, key: POSTGRES_USER }
+            - name: POSTGRES_HOST
+              valueFrom:
+                configMapKeyRef: { name: devboard-config, key: POSTGRES_HOST }
+            - name: POSTGRES_PORT
+              valueFrom:
+                configMapKeyRef: { name: devboard-config, key: POSTGRES_PORT }
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef: { name: devboard-config, key: POSTGRES_DB }
+            - name: POSTGRES_SSLMODE
+              valueFrom:
+                configMapKeyRef: { name: devboard-config, key: POSTGRES_SSLMODE }
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef: { name: devboard-secrets, key: POSTGRES_PASSWORD }
+
+            # The DSN, assembled -- the password is not duplicated anywhere.
+            # An unresolvable $(VAR) is left LITERAL with no error, so keep
+            # these adjacent and explicit.
+            - name: POSTGRES_URL
+              value: "postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)?sslmode=$(POSTGRES_SSLMODE)"
+
+          # LIVENESS: this process only. NEVER a dependency -- otherwise a
+          # database blip restarts every backend pod at once and they all
+          # reconnect simultaneously into a recovering database.
+          livenessProbe:
+            httpGet: { path: /health, port: http }
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+
+          # READINESS: can this pod actually SERVE? /health alone cannot say,
+          # because it does not touch the database. This also checks Postgres,
+          # so an outage removes the pod from the Service instead of restarting
+          # it. See DECISIONS.md section 2 for why a real /ready is better.
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - "wget -q -O /dev/null http://127.0.0.1:${PORT}/health && nc -z ${POSTGRES_HOST} ${POSTGRES_PORT}"
+            initialDelaySeconds: 3
+            periodSeconds: 5
+            timeoutSeconds: 4
+            failureThreshold: 2
+
+          # Endpoint removal and SIGTERM happen in PARALLEL, and removal is
+          # asynchronous across every node. Sleep past that window, then shut
+          # down, or in-flight requests get severed during a rollout.
+          lifecycle:
+            preStop:
+              exec:
+                command: ["sh", "-c", "sleep 5"]
+
+          # CPU request but NO CPU limit -- see DECISIONS.md section 1.
+          # The CPU request is MANDATORY for the HPA: utilisation is a
+          # percentage OF THE REQUEST, so no request means <unknown> forever.
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              memory: 128Mi
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: backend
+  namespace: devboard
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: backend
+  minReplicas: 2          # must be >= 1; a plain HPA cannot scale to zero
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 60      # 60% of the 50m REQUEST, not of a core
+  behavior:
+    # Scale up fast, scale down slowly. Being late to scale up costs an outage;
+    # being late to scale down costs a few minutes of CPU.
+    scaleUp:
+      stabilizationWindowSeconds: 0
+      policies:
+        - type: Percent
+          value: 100
+          periodSeconds: 30
+      selectPolicy: Max
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+        - type: Percent
+          value: 50
+          periodSeconds: 60
+      selectPolicy: Min
+---
+# Makes `kubectl drain` respect availability instead of evicting everything.
+# Covers VOLUNTARY disruption only -- not a node crash or an OOM kill.
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: backend
+  namespace: devboard
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: backend

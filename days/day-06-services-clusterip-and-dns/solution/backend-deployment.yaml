@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-backend
+  namespace: devboard
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: demo-backend
+  template:
+    metadata:
+      labels:
+        app: demo-backend
+    spec:
+      containers:
+        - name: backend
+          image: nginx:1.27-alpine
+          ports:
+            - containerPort: 80
+              name: http          # named so a Service can use targetPort: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 3

@@ -1,0 +1,16 @@
+# The name matters: POSTGRES_HOST in devboard-config is "postgres", so the
+# composed POSTGRES_URL resolves to this Service. It also matches the compose
+# service name, so the DSN from docker-compose.yml transfers unchanged.
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: devboard
+spec:
+  type: ClusterIP     # a database must NEVER be NodePort or LoadBalancer
+  selector:
+    app: postgres
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: postgres

@@ -1,0 +1,20 @@
+# THE NAME OF THIS SERVICE IS NOT A FREE CHOICE.
+#
+# The frontend image has `target: "http://backend:8080"` compiled into
+# vite.preview.config.js. Rename this Service and the frontend returns 502
+# while every pod reports perfectly healthy.
+#
+# A Service name is an API contract.
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend           # <- must be exactly this
+  namespace: devboard
+spec:
+  type: ClusterIP         # internal only; the frontend is the entry point
+  selector:
+    app: backend
+  ports:
+    - name: http
+      port: 8080          # <- and exactly this
+      targetPort: http    # the container's 8080, by name

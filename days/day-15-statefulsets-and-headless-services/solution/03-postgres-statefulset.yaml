@@ -1,0 +1,122 @@
+# Postgres as a StatefulSet -- the correct controller for a database.
+#
+# THREE THINGS A DEPLOYMENT COULD NOT DO:
+#   1. serviceName          -> stable per-pod DNS via the headless Service
+#   2. volumeClaimTemplates -> ONE PVC PER REPLICA, reattached by ordinal
+#   3. ordinal pod names    -> postgres-0 forever, not postgres-6d4f8c-2xk9p
+#
+# WHAT IT STILL DOES NOT DO: replication, failover, backups. Scale this to 3
+# and you get three INDEPENDENT databases. Production needs an operator
+# (CloudNativePG, Zalando, Crunchy).
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  namespace: devboard
+  labels:
+    app: postgres
+spec:
+  serviceName: postgres-headless     # REQUIRED. Must be the headless Service.
+  replicas: 1
+
+  # Ordered (the default): pod N must be Ready before N+1 is created.
+  # `Parallel` disables that for workloads whose replicas are independent.
+  podManagementPolicy: OrderedReady
+
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      # Only pods with ordinal >= partition are updated. Set to 2 for a canary
+      # on the highest replica, then lower it to roll the rest.
+      partition: 0
+
+  selector:
+    matchLabels:
+      app: postgres
+
+  template:
+    metadata:
+      labels:
+        app: postgres
+        tier: data
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 30
+
+      volumes:
+        # Only the init SQL is a plain volume. The DATA volume comes from
+        # volumeClaimTemplates below.
+        - name: init
+          configMap:
+            name: postgres-init
+
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          ports:
+            - containerPort: 5432
+              name: postgres
+
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef: { name: devboard-config, key: POSTGRES_DB }
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef: { name: devboard-config, key: POSTGRES_USER }
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef: { name: devboard-secrets, key: POSTGRES_PASSWORD }
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+
+          volumeMounts:
+            # `data` here matches the volumeClaimTemplate name below.
+            - name: data
+              mountPath: /var/lib/postgresql/data
+            - name: init
+              mountPath: /docker-entrypoint-initdb.d
+              readOnly: true
+
+          readinessProbe:
+            exec:
+              command: ["sh", "-c", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"]
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 6
+          livenessProbe:
+            exec:
+              command: ["sh", "-c", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"]
+            initialDelaySeconds: 30
+            periodSeconds: 15
+
+          resources:
+            requests: { cpu: 100m, memory: 128Mi }
+            limits:   { cpu: 500m, memory: 512Mi }
+
+  # ONE PVC PER REPLICA, created automatically:
+  #   data-postgres-0, data-postgres-1, data-postgres-2 ...
+  #
+  # A replacement pod with the same ordinal reattaches the SAME PVC, so storage
+  # follows identity.
+  #
+  # IMMUTABLE after creation -- you cannot patch the size here. Grow the PVCs
+  # individually instead.
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: standard
+        resources:
+          requests:
+            storage: 2Gi
+
+  # Kubernetes 1.27+. Default is Retain for both, which is why PVCs survive a
+  # scale-down or a delete. Uncomment to have Kubernetes clean up instead --
+  # convenient in a learning cluster, dangerous in production.
+  #
+  # persistentVolumeClaimRetentionPolicy:
+  #   whenDeleted: Retain
+  #   whenScaled: Retain

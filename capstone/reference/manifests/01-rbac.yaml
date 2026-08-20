@@ -1,0 +1,105 @@
+# One ServiceAccount PER WORKLOAD. None of them uses `default`.
+#
+# All three carry automountServiceAccountToken: false at the POD level too --
+# see 03/04/05. Setting it here as well is belt and braces: a pod that forgets
+# the field still gets no token.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: devboard-postgres
+  namespace: devboard
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/part-of: devboard
+automountServiceAccountToken: false
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: devboard-backend
+  namespace: devboard
+  labels:
+    app.kubernetes.io/name: backend
+    app.kubernetes.io/part-of: devboard
+automountServiceAccountToken: false
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: devboard-frontend
+  namespace: devboard
+  labels:
+    app.kubernetes.io/name: frontend
+    app.kubernetes.io/part-of: devboard
+automountServiceAccountToken: false
+---
+# An identity for a human operator: full read access to the namespace, including
+# logs, and no ability to change anything or read credentials.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: devboard-operator
+  namespace: devboard
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: devboard-operator
+  namespace: devboard
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "services", "configmaps", "persistentvolumeclaims", "events", "endpoints"]
+    verbs: ["get", "list", "watch"]
+
+  # Subresource -- `pods` does NOT include logs. An operator who cannot read
+  # logs cannot do their job.
+  - apiGroups: [""]
+    resources: ["pods/log"]
+    verbs: ["get", "list"]
+
+  - apiGroups: ["apps"]
+    resources: ["deployments", "replicasets", "statefulsets"]
+    verbs: ["get", "list", "watch"]
+
+  - apiGroups: ["autoscaling"]
+    resources: ["horizontalpodautoscalers"]
+    verbs: ["get", "list", "watch"]
+
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["ingresses"]
+    verbs: ["get", "list", "watch"]
+
+  - apiGroups: ["policy"]
+    resources: ["poddisruptionbudgets"]
+    verbs: ["get", "list", "watch"]
+
+  # DELIBERATELY ABSENT:
+  #   secrets    -- reading a Secret is reading the database password
+  #   pods/exec  -- exec bypasses the secrets restriction entirely by reading
+  #                 /proc/1/environ or catting a mounted file
+  #   every write verb
+  #
+  # Verify:
+  #   SA=system:serviceaccount:devboard:devboard-operator
+  #   kubectl auth can-i get secrets     -n devboard --as=$SA   # no
+  #   kubectl auth can-i create pods/exec -n devboard --as=$SA  # no
+  #   kubectl auth can-i get pods/log    -n devboard --as=$SA   # yes
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: devboard-operator
+  namespace: devboard
+subjects:
+  - kind: ServiceAccount
+    name: devboard-operator
+    namespace: devboard
+  # In a real cluster you bind to a GROUP from your identity provider, never to
+  # individuals -- then joiners and leavers are handled by the IdP, not kubectl:
+  # - kind: Group
+  #   name: platform-oncall
+  #   apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role
+  name: devboard-operator
+  apiGroup: rbac.authorization.k8s.io

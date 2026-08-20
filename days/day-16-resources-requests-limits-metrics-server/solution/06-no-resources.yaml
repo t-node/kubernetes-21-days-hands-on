@@ -1,0 +1,16 @@
+# Break It A: the BestEffort trap.
+#
+# No requests -> scheduled onto any node regardless of load.
+# No limits   -> can consume unbounded CPU and memory.
+# QoS BestEffort -> the FIRST thing evicted under node pressure.
+#
+# Simultaneously the most dangerous neighbour and the most fragile tenant.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: no-resources
+  namespace: devboard
+spec:
+  containers:
+    - name: app
+      image: nginx:1.27-alpine

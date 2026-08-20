@@ -1,0 +1,58 @@
+# Frontend, tier 1. React + Vite, served by `vite preview` on :4173.
+# It also reverse-proxies /api/* to http://backend:8080/* with /api stripped.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: devboard
+  labels:
+    app: frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+        tier: web
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: frontend
+          image: devboard-frontend:1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 4173
+              name: http
+          # "/" is static asset serving. It deliberately says nothing about the
+          # backend, so a backend outage does not restart every frontend pod.
+          livenessProbe:
+            httpGet: { path: /, port: http }
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet: { path: /, port: http }
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          resources:
+            requests: { cpu: 50m, memory: 64Mi }
+            limits:   { cpu: 300m, memory: 256Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  # This name IS free -- nothing inside any image refers to it. Only the
+  # nodePort matters to the browser.
+  name: devboard-frontend
+  namespace: devboard
+spec:
+  type: NodePort
+  selector:
+    app: frontend
+  ports:
+    - name: http
+      port: 80          # Service port
+      targetPort: http  # container 4173
+      nodePort: 30080   # -> localhost:30080 via cluster/kind-config.yaml

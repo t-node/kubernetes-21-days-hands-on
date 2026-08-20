@@ -1,0 +1,32 @@
+# The standard HPA.
+#
+# PREREQUISITES, both mandatory:
+#   1. metrics-server installed and Ready          (Day 16)
+#   2. the backend has a CPU REQUEST               (Day 16)
+#
+# Without a CPU request there is no denominator for "utilisation", so this
+# reports <unknown>/50% forever and never scales. That is the single most
+# common HPA bug.
+apiVersion: autoscaling/v2      # NOT autoscaling/v1 -- v1 supports only one CPU target
+kind: HorizontalPodAutoscaler
+metadata:
+  name: backend
+  namespace: devboard
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment            # Deployment / StatefulSet / ReplicaSet. NOT DaemonSet.
+    name: backend
+
+  minReplicas: 2                # must be >= 1; a plain HPA cannot scale to zero
+  maxReplicas: 10
+
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          # 50% OF THE CPU REQUEST, not of a core and not of the limit.
+          # With requests.cpu=50m, a pod using 60m is at 120%.
+          averageUtilization: 50

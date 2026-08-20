@@ -1,0 +1,10 @@
+# The namespace every remaining day of this course uses.
+# A Namespace is essentially just a name plus labels - there is no meaningful
+# spec to write.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: devboard
+  labels:
+    project: devboard
+    environment: learning

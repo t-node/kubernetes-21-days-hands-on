@@ -1,0 +1,15 @@
+# Break It D: asks for more than manual-pv (1Gi) offers, in the same class.
+# No dynamic provisioner handles the "manual" class, so nothing creates a
+# bigger PV. Pending forever.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: too-big
+  namespace: devboard
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: manual
+  resources:
+    requests:
+      storage: 50Gi

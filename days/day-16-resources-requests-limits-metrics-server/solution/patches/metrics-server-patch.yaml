@@ -1,0 +1,28 @@
+# Apply with:
+#   kubectl patch deployment metrics-server -n kube-system --type=json -p \
+#     '[{"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--kubelet-insecure-tls"}]'
+#
+# Or as a strategic merge, replacing the full args list:
+#   kubectl patch deployment metrics-server -n kube-system \
+#     --patch-file metrics-server-patch.yaml
+#
+# WHY: kind's kubelets serve self-signed certificates that are not in the
+# cluster CA, so metrics-server's scrape fails with
+#   x509: cannot validate certificate for 172.18.0.3 because it doesn't
+#   contain any IP SANs
+#
+# --kubelet-insecure-tls skips that verification. Correct for a local learning
+# cluster. NEVER in production -- there you fix the certificates instead
+# (kubelet --rotate-server-certificates plus a CSR approver).
+spec:
+  template:
+    spec:
+      containers:
+        - name: metrics-server
+          args:
+            - --cert-dir=/tmp
+            - --secure-port=10250
+            - --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname
+            - --kubelet-use-node-status-port
+            - --metric-resolution=15s
+            - --kubelet-insecure-tls

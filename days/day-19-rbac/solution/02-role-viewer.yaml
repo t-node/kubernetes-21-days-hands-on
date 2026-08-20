@@ -1,0 +1,34 @@
+# Read-only inside the devboard namespace.
+#
+# NOTE WHAT IS ABSENT, deliberately:
+#   - secrets      -> reading a Secret is reading a credential (Day 10)
+#   - pods/exec    -> exec bypasses every other restriction (Break It B)
+#   - any write verb
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: devboard-viewer
+  namespace: devboard
+rules:
+  # "" is the CORE api group: pods, services, configmaps, endpoints...
+  - apiGroups: [""]
+    resources: ["pods", "services", "configmaps", "persistentvolumeclaims", "events"]
+    verbs: ["get", "list", "watch"]
+
+  # SUBRESOURCE -- `pods` alone does NOT include logs.
+  - apiGroups: [""]
+    resources: ["pods/log"]
+    verbs: ["get", "list"]
+
+  # Deployments live in the `apps` group, not "".
+  - apiGroups: ["apps"]
+    resources: ["deployments", "replicasets", "statefulsets", "daemonsets"]
+    verbs: ["get", "list", "watch"]
+
+  - apiGroups: ["autoscaling"]
+    resources: ["horizontalpodautoscalers"]
+    verbs: ["get", "list", "watch"]
+
+  - apiGroups: ["batch"]
+    resources: ["jobs", "cronjobs"]
+    verbs: ["get", "list", "watch"]

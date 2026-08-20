@@ -1,0 +1,78 @@
+# Postgres with REAL persistence. The only change from Day 12 is the volume:
+#
+#   emptyDir: {}     ->     persistentVolumeClaim:
+#                             claimName: postgres-data
+#
+# Still a Deployment, which is still wrong for a database -- Day 15 fixes that.
+# Scale this to 2 and you get either a Multi-Attach error or two postmasters on
+# one data directory (Break It A).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: devboard
+  labels:
+    app: postgres
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate      # MANDATORY with a RWO volume: a rolling update would
+                        # start a new pod before the old one released the disk
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+        tier: data
+    spec:
+      automountServiceAccountToken: false
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: postgres-data     # <- the whole point of today
+        - name: init
+          configMap:
+            name: postgres-init
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          ports:
+            - containerPort: 5432
+              name: postgres
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef: { name: devboard-config, key: POSTGRES_DB }
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef: { name: devboard-config, key: POSTGRES_USER }
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef: { name: devboard-secrets, key: POSTGRES_PASSWORD }
+            # NOW ESSENTIAL, not merely good practice: a real PV contains
+            # lost+found, so initdb into the mount root fails with
+            # "directory exists but is not empty".
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+            - name: init
+              mountPath: /docker-entrypoint-initdb.d
+              readOnly: true
+          readinessProbe:
+            exec:
+              command: ["sh", "-c", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"]
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 6
+          livenessProbe:
+            exec:
+              command: ["sh", "-c", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"]
+            initialDelaySeconds: 30
+            periodSeconds: 15
+          resources:
+            requests: { cpu: 100m, memory: 128Mi }
+            limits:   { cpu: 500m, memory: 512Mi }

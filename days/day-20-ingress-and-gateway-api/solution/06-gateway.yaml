@@ -1,0 +1,39 @@
+# THE CLUSTER OPERATOR'S object: what to listen on, and with which certificate.
+#
+# Maps from Ingress:
+#   ingressClassName: nginx   ->  gatewayClassName: eg
+#   spec.tls                  ->  listeners[].tls
+#
+# `allowedRoutes` is new and has no Ingress equivalent: the operator controls
+# WHICH NAMESPACES may attach routes to this Gateway. That is the delegation
+# boundary Ingress never had.
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: devboard-gateway
+  namespace: devboard
+spec:
+  gatewayClassName: eg           # must match `kubectl get gatewayclass`
+
+  listeners:
+    - name: http
+      protocol: HTTP
+      port: 80
+      hostname: "devboard.local"
+      allowedRoutes:
+        namespaces:
+          from: Same             # Same | All | Selector
+
+    # Uncomment once the devboard-tls Secret exists (Step 5).
+    # - name: https
+    #   protocol: HTTPS
+    #   port: 443
+    #   hostname: "devboard.local"
+    #   tls:
+    #     mode: Terminate
+    #     certificateRefs:
+    #       - kind: Secret
+    #         name: devboard-tls
+    #   allowedRoutes:
+    #     namespaces:
+    #       from: Same

@@ -1,0 +1,16 @@
+apiVersion: v1                # Service is core/v1, NOT apps/v1
+kind: Service
+metadata:
+  name: demo-backend
+  namespace: devboard
+  labels:
+    app: demo-backend
+spec:
+  type: ClusterIP             # the default; spelled out for clarity
+  selector:
+    app: demo-backend         # MUST match the POD labels (spec.template.metadata.labels)
+  ports:
+    - name: http
+      port: 8080              # what clients connect to:  demo-backend:8080
+      targetPort: 80          # what the container listens on
+      protocol: TCP

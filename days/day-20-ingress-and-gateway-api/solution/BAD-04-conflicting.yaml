@@ -1,0 +1,27 @@
+# Break It D: a SECOND Ingress claiming the same host and path as
+# 01-ingress-basic.yaml.
+#
+# Nothing in the API prevents this. Behaviour is controller-specific and largely
+# undefined -- ingress-nginx generally lets the oldest object win and logs a
+# warning. Two teams can silently break each other's routing.
+#
+# The Gateway API specifies conflict resolution properly, which is one more
+# argument for migrating.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: conflicting
+  namespace: devboard
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: devboard.local      # SAME host...
+      http:
+        paths:
+          - path: /             # ...SAME path...
+            pathType: Prefix
+            backend:
+              service:
+                name: backend   # ...DIFFERENT backend
+                port:
+                  number: 8080

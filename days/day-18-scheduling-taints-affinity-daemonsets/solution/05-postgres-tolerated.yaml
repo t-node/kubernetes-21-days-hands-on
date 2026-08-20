@@ -1,0 +1,95 @@
+# Dedicate a node to the database. Requires ALL THREE pieces:
+#
+#   1. taint the node          kubectl taint nodes devops-worker2 dedicated=database:NoSchedule
+#   2. tolerate the taint      (the tolerations block below)  -> ALLOWED there
+#   3. affinity / nodeSelector (the affinity block below)     -> GOES there
+#
+# Toleration alone is only permission. Without step 3 the pod may land on any
+# untainted node instead. That is the single most misunderstood point about
+# taints.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  namespace: devboard
+  labels:
+    app: postgres
+spec:
+  serviceName: postgres-headless
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+        tier: data
+    spec:
+      automountServiceAccountToken: false
+
+      # 2. PERMISSION to be on the tainted node
+      tolerations:
+        - key: dedicated
+          operator: Equal        # or Exists, which matches any value
+          value: database
+          effect: NoSchedule
+
+      # 3. INSTRUCTION to actually go there
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: In
+                    values: [devops-worker2]
+
+      volumes:
+        - name: init
+          configMap:
+            name: postgres-init
+
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          ports:
+            - containerPort: 5432
+              name: postgres
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef: { name: devboard-config, key: POSTGRES_DB }
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef: { name: devboard-config, key: POSTGRES_USER }
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef: { name: devboard-secrets, key: POSTGRES_PASSWORD }
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+            - name: init
+              mountPath: /docker-entrypoint-initdb.d
+              readOnly: true
+          readinessProbe:
+            exec:
+              command: ["sh", "-c", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"]
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 6
+          resources:
+            requests: { cpu: 100m, memory: 128Mi }
+            limits:   { cpu: 500m, memory: 512Mi }
+
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: [ReadWriteOnce]
+        storageClassName: standard
+        resources:
+          requests:
+            storage: 2Gi

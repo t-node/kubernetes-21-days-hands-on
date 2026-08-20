@@ -1,0 +1,24 @@
+apiVersion: apps/v1        # NOT v1 -- Deployment lives in the apps API group
+kind: Deployment
+metadata:
+  name: devboard-frontend
+  namespace: devboard
+  labels:
+    app: devboard-frontend       # labels on the Deployment object itself
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: devboard-frontend     # which pods this Deployment owns (IMMUTABLE)
+  template:
+    metadata:
+      labels:
+        app: devboard-frontend   # MUST match the selector above
+        tier: web
+    spec:
+      containers:
+        - name: frontend
+          image: nginx:1.27-alpine
+          ports:
+            - containerPort: 80
+              name: http

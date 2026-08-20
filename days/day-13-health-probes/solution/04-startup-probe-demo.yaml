@@ -1,0 +1,32 @@
+# A slow starter: 60 seconds before it listens.
+#
+# WITHOUT a startup probe, the liveness probe below (period 10, threshold 3)
+# would kill it at ~30s -- forever, an infinite restart loop.
+#
+# WITH it, liveness and readiness are SUSPENDED until the startup probe passes,
+# giving 30 x 5 = 150 seconds to boot. After that, liveness is strict again.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: startup-demo
+  namespace: devboard
+  labels:
+    demo: startup
+spec:
+  containers:
+    - name: slow
+      image: nginx:1.27-alpine
+      ports:
+        - containerPort: 80
+          name: http
+      command: ["sh", "-c", "sleep 60; nginx -g 'daemon off;'"]
+
+      startupProbe:
+        httpGet: { path: /, port: http }
+        failureThreshold: 30
+        periodSeconds: 5              # 150s budget to start
+
+      livenessProbe:
+        httpGet: { path: /, port: http }
+        periodSeconds: 10
+        failureThreshold: 3           # ~30s detection, once started

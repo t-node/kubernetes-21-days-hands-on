@@ -1,0 +1,60 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: devboard
+  labels:
+    app.kubernetes.io/name: devboard
+    app.kubernetes.io/part-of: devboard
+    environment: production
+    # Stretch goal: enforce the restricted Pod Security standard. Every workload
+    # here already complies -- uncomment and prove it.
+    # pod-security.kubernetes.io/enforce: restricted
+    # pod-security.kubernetes.io/enforce-version: latest
+---
+# Caps what the whole namespace can consume. Without this, one runaway workload
+# starves every other tenant on the cluster.
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: devboard-quota
+  namespace: devboard
+spec:
+  hard:
+    requests.cpu: "4"
+    requests.memory: 4Gi
+    limits.cpu: "8"
+    limits.memory: 8Gi
+    pods: "40"
+    services: "10"
+    persistentvolumeclaims: "5"
+    count/deployments.apps: "10"
+    count/statefulsets.apps: "3"
+---
+# MANDATORY COMPANION to the quota above.
+#
+# Once a ResourceQuota sets requests.cpu / requests.memory, every pod in the
+# namespace MUST declare them or it is rejected outright. The LimitRange
+# supplies defaults so that a pod created without explicit resources -- a debug
+# pod, a Job, someone's `kubectl run` -- is still admitted.
+#
+# Apply order matters on a fresh namespace: LimitRange first.
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: devboard-limits
+  namespace: devboard
+spec:
+  limits:
+    - type: Container
+      default:                 # becomes `limits` when unset
+        cpu: 200m
+        memory: 256Mi
+      defaultRequest:          # becomes `requests` when unset
+        cpu: 50m
+        memory: 64Mi
+      min:
+        cpu: 10m
+        memory: 16Mi
+      max:
+        cpu: "2"
+        memory: 1Gi

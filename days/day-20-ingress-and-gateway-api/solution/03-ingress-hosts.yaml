@@ -1,0 +1,33 @@
+# HOST-based routing: two hostnames, two backends, ONE load balancer.
+#
+# Cleaner than path-based when you control DNS: api.devboard.local reaches the
+# backend at its own root, so NO rewrite is needed at all.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: devboard-hosts
+  namespace: devboard
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: app.devboard.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: devboard-frontend
+                port:
+                  number: 80
+
+    - host: api.devboard.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: backend
+                port:
+                  number: 8080

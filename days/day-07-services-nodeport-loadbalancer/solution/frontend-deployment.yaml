@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: devboard-frontend
+  namespace: devboard
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: devboard-frontend
+  template:
+    metadata:
+      labels:
+        app: devboard-frontend
+    spec:
+      containers:
+        - name: frontend
+          image: nginx:1.27-alpine
+          ports:
+            - containerPort: 80
+              name: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            periodSeconds: 3

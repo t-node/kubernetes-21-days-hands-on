@@ -1,0 +1,10 @@
+# Pure DNS alias. CoreDNS returns a CNAME; nothing is proxied.
+# No ClusterIP, no endpoints, no ports.
+apiVersion: v1
+kind: Service
+metadata:
+  name: external-api
+  namespace: devboard
+spec:
+  type: ExternalName
+  externalName: example.com

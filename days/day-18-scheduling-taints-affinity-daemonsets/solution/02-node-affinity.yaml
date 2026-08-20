@@ -1,0 +1,40 @@
+# nodeSelector with grammar: operators, OR/AND, and a SOFT tier.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: affinity-demo
+  namespace: devboard
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      demo: affinity
+  template:
+    metadata:
+      labels:
+        demo: affinity
+    spec:
+      affinity:
+        nodeAffinity:
+          # HARD: unmet -> Pending forever
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              # multiple TERMS are OR; multiple matchExpressions in one term are AND
+              - matchExpressions:
+                  - key: disktype
+                    operator: In         # In, NotIn, Exists, DoesNotExist, Gt, Lt
+                    values: [ssd, hdd]
+
+          # SOFT: only affects SCORING. Never blocks scheduling.
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 80                 # 1-100; higher wins
+              preference:
+                matchExpressions:
+                  - key: tier
+                    operator: In
+                    values: [general]
+      containers:
+        - name: app
+          image: nginx:1.27-alpine
+          resources:
+            requests: { cpu: 10m, memory: 16Mi }

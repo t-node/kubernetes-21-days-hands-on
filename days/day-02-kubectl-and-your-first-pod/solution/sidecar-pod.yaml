@@ -1,0 +1,30 @@
+# The sidecar pattern: two containers, one Pod, one shared volume.
+# `writer` appends to a log file; `reader` tails the same file.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: web-with-sidecar
+  labels:
+    app: demo
+spec:
+  volumes:
+    # emptyDir lives exactly as long as the Pod. Delete the Pod, lose the data.
+    - name: shared-logs
+      emptyDir: {}
+
+  containers:
+    - name: writer
+      image: busybox:1.36
+      command: ["sh", "-c"]
+      args:
+        - while true; do echo "$(date) hello from writer" >> /data/app.log; sleep 3; done
+      volumeMounts:
+        - name: shared-logs
+          mountPath: /data
+
+    - name: reader
+      image: busybox:1.36
+      command: ["sh", "-c", "tail -f /data/app.log"]
+      volumeMounts:
+        - name: shared-logs
+          mountPath: /data

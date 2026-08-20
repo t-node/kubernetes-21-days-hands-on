@@ -1,0 +1,178 @@
+# Postgres: StatefulSet + headless Service (identity) + ClusterIP Service (clients)
+#
+# GUARANTEED QoS -- requests == limits on both CPU and memory -- so it is the
+# LAST thing the kubelet evicts under node pressure. That is the one workload
+# where predictability beats burst capacity.
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-headless
+  namespace: devboard
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/part-of: devboard
+spec:
+  clusterIP: None                    # headless: per-pod DNS, no load balancing
+  selector:
+    app.kubernetes.io/name: postgres
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: postgres
+  publishNotReadyAddresses: true     # peers must find each other during bootstrap
+---
+# The Service clients use. Named `postgres` because that is POSTGRES_HOST in the
+# ConfigMap -- and because it matches the upstream compose file, so the DSN
+# transfers unchanged.
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: devboard
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/part-of: devboard
+spec:
+  type: ClusterIP                    # a database is NEVER NodePort or LoadBalancer
+  selector:
+    app.kubernetes.io/name: postgres
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: postgres           # by NAME, so a port change cannot desync
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  namespace: devboard
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/component: database
+    app.kubernetes.io/part-of: devboard
+spec:
+  serviceName: postgres-headless     # REQUIRED, and must be the headless one
+  replicas: 1
+  podManagementPolicy: OrderedReady
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      partition: 0                   # raise for a canary on the highest ordinal
+
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: postgres
+
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: postgres
+        app.kubernetes.io/component: database
+        app.kubernetes.io/part-of: devboard
+    spec:
+      serviceAccountName: devboard-postgres
+      automountServiceAccountToken: false     # never calls the Kubernetes API
+      terminationGracePeriodSeconds: 60       # let Postgres checkpoint cleanly
+
+      securityContext:
+        # The postgres image's own uid/gid. fsGroup makes the mounted volume
+        # writable by it without running anything as root.
+        runAsUser: 70
+        runAsGroup: 70
+        fsGroup: 70
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+
+      volumes:
+        - name: init
+          configMap:
+            name: postgres-init
+        # Postgres needs a writable /tmp and /run even with a read-only root fs.
+        - name: tmp
+          emptyDir: {}
+        - name: run
+          emptyDir: {}
+
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          ports:
+            - containerPort: 5432
+              name: postgres
+
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            # NOT readOnlyRootFilesystem: the postgres entrypoint writes to
+            # several paths outside PGDATA. Forcing it requires more emptyDir
+            # mounts than it is worth; documented rather than hidden.
+
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef: { name: devboard-config, key: POSTGRES_DB }
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef: { name: devboard-config, key: POSTGRES_USER }
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef: { name: devboard-secrets, key: POSTGRES_PASSWORD }
+            # ESSENTIAL with a real PV: the volume root contains lost+found, so
+            # initdb into it fails with "exists but is not empty".
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+
+          volumeMounts:
+            - name: data                       # from volumeClaimTemplates
+              mountPath: /var/lib/postgresql/data
+            - name: init
+              mountPath: /docker-entrypoint-initdb.d
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+            - name: run
+              mountPath: /var/run/postgresql
+
+          # pg_isready checks the server ACCEPTS CONNECTIONS, not merely that a
+          # process exists. That distinction is the whole point of a probe.
+          startupProbe:
+            exec:
+              command: ["sh", "-c", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"]
+            periodSeconds: 5
+            failureThreshold: 30               # 150s budget for initdb + seeding
+          readinessProbe:
+            exec:
+              command: ["sh", "-c", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"]
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            exec:
+              command: ["sh", "-c", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"]
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+          resources:
+            requests: { cpu: 250m, memory: 256Mi }
+            limits:   { cpu: 250m, memory: 256Mi }    # == requests -> Guaranteed
+
+  # One PVC per replica: data-postgres-0, data-postgres-1, ...
+  # A replacement pod with the same ordinal reattaches the SAME volume.
+  # IMMUTABLE after creation -- size it with that in mind.
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+        labels:
+          app.kubernetes.io/part-of: devboard
+      spec:
+        accessModes: [ReadWriteOnce]
+        storageClassName: standard
+        resources:
+          requests:
+            storage: 5Gi
+  # In production, use a StorageClass with reclaimPolicy: Retain so that
+  # `kubectl delete pvc` cannot destroy the data. See
+  # days/day-14-volumes-pv-pvc/solution/05-storageclass-retain.yaml

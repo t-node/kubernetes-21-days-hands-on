@@ -1,0 +1,45 @@
+# High availability: never two replicas on one node.
+#
+# WARNING -- `required` anti-affinity on hostname CAPS YOUR REPLICAS AT THE
+# NODE COUNT. Scale to 4 on a 3-node cluster and the fourth is Pending forever.
+# With an HPA driving the scale-up, autoscaling silently stops working.
+#
+# Prefer `preferred` (below, commented) or topology spread constraints
+# (04-topology-spread.yaml).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spread-demo
+  namespace: devboard
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      demo: antiaffinity
+  template:
+    metadata:
+      labels:
+        demo: antiaffinity
+        app: spread-demo
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app: spread-demo
+              topologyKey: kubernetes.io/hostname    # "together" == same node
+
+          # The safer form -- schedules anyway if it cannot spread:
+          # preferredDuringSchedulingIgnoredDuringExecution:
+          #   - weight: 100
+          #     podAffinityTerm:
+          #       labelSelector:
+          #         matchLabels:
+          #           app: spread-demo
+          #       topologyKey: kubernetes.io/hostname
+      containers:
+        - name: app
+          image: nginx:1.27-alpine
+          resources:
+            requests: { cpu: 10m, memory: 16Mi }

@@ -1,0 +1,25 @@
+# Break It B: points at a Service that does not exist.
+#
+# Result: 503 from the CONTROLLER ("no healthy upstream"), not 404 from the app.
+# Learning to read that difference localises a fault immediately:
+#   404 -> your application was reached and did not know the path
+#   503 -> the controller had nothing to forward to
+#   502 -> the upstream refused or errored the connection
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: broken-backend
+  namespace: devboard
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: broken.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: does-not-exist
+                port:
+                  number: 80

@@ -1,0 +1,18 @@
+# Full control INSIDE devboard, nothing outside it.
+#
+# In real life you would bind the built-in `admin` ClusterRole instead of
+# writing this (see 07-rolebinding-builtin-view.yaml for the pattern). It is
+# spelled out here so you can see what "admin" actually contains.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: devboard-admin
+  namespace: devboard
+rules:
+  - apiGroups: ["", "apps", "batch", "autoscaling", "networking.k8s.io", "policy"]
+    resources: ["*"]
+    verbs: ["*"]
+  # Explicit, because it is the dangerous one and should be a conscious choice.
+  - apiGroups: [""]
+    resources: ["pods/exec", "pods/portforward", "pods/log"]
+    verbs: ["get", "create"]

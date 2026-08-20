@@ -1,0 +1,20 @@
+# Break It E: nodeName BYPASSES THE SCHEDULER COMPLETELY.
+#
+# No filtering, no scoring, no scheduling event at all -- the kubelet on that
+# node simply picks the pod up. It ignores taints, resource availability and
+# every other constraint. If the node is full, the kubelet rejects it and the
+# pod stays OutOfcpu forever with nothing rescheduling it.
+#
+# NEVER use this outside debugging.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pinned
+  namespace: devboard
+spec:
+  nodeName: devops-worker2
+  containers:
+    - name: app
+      image: nginx:1.27-alpine
+      resources:
+        requests: { cpu: 10m, memory: 16Mi }

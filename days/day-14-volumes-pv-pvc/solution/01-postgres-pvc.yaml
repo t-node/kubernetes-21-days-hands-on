@@ -1,0 +1,21 @@
+# A request for storage. Namespaced, owned by the application.
+#
+# On creation this sits in Pending with
+#   "waiting for first consumer to be created before binding"
+# That is CORRECT, not an error -- kind's `standard` StorageClass uses
+# volumeBindingMode: WaitForFirstConsumer, so the volume is not provisioned
+# until a pod that needs it has been scheduled.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-data
+  namespace: devboard
+spec:
+  accessModes:
+    # ReadWriteOnce = one NODE, not one POD. Two pods on the SAME node can both
+    # mount this. ReadWriteOncePod is the mode that guarantees a single pod.
+    - ReadWriteOnce
+  storageClassName: standard      # kind's default (rancher.io/local-path)
+  resources:
+    requests:
+      storage: 2Gi

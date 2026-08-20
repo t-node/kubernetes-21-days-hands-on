@@ -1,0 +1,45 @@
+# Drives the backend hard enough to trigger the HPA.
+#
+# Each replica loops `wget` against backend:8080/tasks. That path goes through
+# the Gin router AND queries Postgres, so it burns real CPU rather than
+# returning a static response.
+#
+#   kubectl apply   -f 02-load-generator.yaml    # start
+#   kubectl delete  -f 02-load-generator.yaml    # stop
+#
+# Alternative used in many tutorials: a pod running `stress` or `stress-ng`.
+# That loads the GENERATOR, not the service -- fine for demonstrating cgroup
+# limits, useless for demonstrating an HPA on your application.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: load-generator
+  namespace: devboard
+  labels:
+    app: load-generator
+spec:
+  replicas: 8
+  selector:
+    matchLabels:
+      app: load-generator
+  template:
+    metadata:
+      labels:
+        app: load-generator
+    spec:
+      containers:
+        - name: loader
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              echo "hammering backend:8080/tasks"
+              while true; do
+                wget -q -O /dev/null http://backend:8080/tasks || true
+              done
+          resources:
+            # Keep the GENERATOR small so it does not starve the thing you are
+            # trying to measure.
+            requests: { cpu: 20m,  memory: 16Mi }
+            limits:   { cpu: 100m, memory: 32Mi }

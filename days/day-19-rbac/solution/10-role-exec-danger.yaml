@@ -1,0 +1,32 @@
+# Break It B: pods/exec is a BACKDOOR AROUND EVERY OTHER RESTRICTION.
+#
+# This identity is explicitly denied secrets... and can exec into any pod that
+# has one mounted and simply `cat` it, or read /proc/1/environ.
+#
+# TREAT `create` ON `pods/exec` AS AN ADMIN-LEVEL PERMISSION.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: exec-danger
+  namespace: devboard
+rules:
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list"]
+  - apiGroups: [""]
+    resources: ["pods/exec"]     # <- the whole problem
+    verbs: ["create"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: exec-danger-binding
+  namespace: devboard
+subjects:
+  - kind: ServiceAccount
+    name: devboard-execer
+    namespace: devboard
+roleRef:
+  kind: Role
+  name: exec-danger
+  apiGroup: rbac.authorization.k8s.io

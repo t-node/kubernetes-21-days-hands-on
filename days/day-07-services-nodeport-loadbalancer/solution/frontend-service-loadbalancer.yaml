@@ -1,0 +1,22 @@
+# On EKS/GKE/AKS this provisions a real cloud load balancer.
+# On kind, EXTERNAL-IP stays <pending> forever: there is no
+# cloud-controller-manager watching for it. The ClusterIP and the nodePort ARE
+# still created -- check with:
+#   kubectl get svc devboard-frontend-lb -n devboard \
+#     -o jsonpath='{.spec.ports[0].nodePort}'
+apiVersion: v1
+kind: Service
+metadata:
+  name: devboard-frontend-lb
+  namespace: devboard
+  # annotations:
+  #   service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+  #   service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
+spec:
+  type: LoadBalancer
+  selector:
+    app: devboard-frontend
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

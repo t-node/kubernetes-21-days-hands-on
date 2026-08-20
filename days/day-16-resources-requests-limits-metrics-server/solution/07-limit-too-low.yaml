@@ -1,0 +1,22 @@
+# Break It B: a memory limit below what the runtime needs to start at all.
+#
+# Postgres cannot initialise in 16Mi. It is OOMKilled during startup, so
+# `kubectl logs` shows nothing useful -- the answer is only in `describe`.
+#
+# LESSON: when a container dies before producing logs, check the memory limit
+# BEFORE anything else.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: tiny-limit
+  namespace: devboard
+spec:
+  containers:
+    - name: postgres
+      image: postgres:16-alpine
+      env:
+        - name: POSTGRES_PASSWORD
+          value: "irrelevant"
+      resources:
+        requests: { memory: 16Mi }
+        limits:   { memory: 16Mi }

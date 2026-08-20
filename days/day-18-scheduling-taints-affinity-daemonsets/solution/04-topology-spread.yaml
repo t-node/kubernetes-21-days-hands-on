@@ -1,0 +1,34 @@
+# The modern, better-behaved way to spread replicas.
+#
+# maxSkew: 1 means the busiest and emptiest topology domains may differ by at
+# most one pod. whenUnsatisfiable: ScheduleAnyway means "try hard, but never
+# leave a pod Pending" -- which is exactly what required anti-affinity gets
+# wrong.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: topology-demo
+  namespace: devboard
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      demo: spread
+  template:
+    metadata:
+      labels:
+        demo: spread
+        app: topology-demo
+    spec:
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway     # or DoNotSchedule (hard)
+          labelSelector:
+            matchLabels:
+              app: topology-demo
+      containers:
+        - name: app
+          image: nginx:1.27-alpine
+          resources:
+            requests: { cpu: 10m, memory: 16Mi }

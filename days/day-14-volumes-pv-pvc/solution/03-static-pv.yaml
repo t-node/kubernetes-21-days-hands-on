@@ -1,0 +1,27 @@
+# STATIC provisioning, for understanding only.
+#
+# Real clusters provision dynamically. Creating a PV by hand once makes the
+# model concrete: a PVC binds to this only if storageClassName, accessModes AND
+# capacity all satisfy the request.
+#
+# NOTE: no `namespace:` -- a PersistentVolume is CLUSTER-SCOPED. Adding one is
+# silently ignored.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: manual-pv
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  # Retain: when the PVC is deleted this PV becomes Released (NOT Available)
+  # and keeps the data. An admin must clear spec.claimRef before it can be
+  # reused -- a deliberate interlock against another team binding to your data.
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual        # a made-up class, so no provisioner touches it
+  hostPath:
+    # hostPath ties data to ONE node. Fine for this demo, wrong for real
+    # workloads, and a privilege-escalation risk in application pods.
+    path: /tmp/manual-pv
+    type: DirectoryOrCreate

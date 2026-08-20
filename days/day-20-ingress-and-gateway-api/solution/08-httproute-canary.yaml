@@ -1,0 +1,40 @@
+# TRAFFIC SPLITTING -- the thing plain Ingress cannot do.
+#
+# 90/10 by weight, as a standard API field. On Day 05 you approximated this with
+# replica ratios (10 pods, 1 of them v2); here it is exact and explicit.
+#
+# NOTE: `backend-canary` does not exist in this course. Create it, or edit the
+# backendRefs, before applying. The point is the SHAPE of the API.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: devboard-canary
+  namespace: devboard
+spec:
+  parentRefs:
+    - name: devboard-gateway
+      sectionName: http
+  hostnames:
+    - canary.devboard.local
+  rules:
+    # 1. Explicit opt-in: a header sends you to the canary every time.
+    #    Header matching is another thing Ingress cannot express portably.
+    - matches:
+        - path: { type: PathPrefix, value: / }
+          headers:
+            - name: x-canary
+              value: "true"
+      backendRefs:
+        - name: backend
+          port: 8080
+
+    # 2. Everyone else: weighted split.
+    - matches:
+        - path: { type: PathPrefix, value: / }
+      backendRefs:
+        - name: backend
+          port: 8080
+          weight: 90
+        - name: backend-canary
+          port: 8080
+          weight: 10

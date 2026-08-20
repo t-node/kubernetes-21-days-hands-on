@@ -1,0 +1,22 @@
+# Break It D: NO memory limit -- the pod allocates until the NODE is in trouble.
+#
+# The kubelet then starts evicting, and it evicts BestEffort and Burstable pods
+# first -- which may include YOUR application while the hog survives.
+#
+#   kubectl get events -n devboard --field-selector reason=Evicted
+#   kubectl describe node devops-worker | grep -i -A3 pressure
+#
+# One missing limit, collateral damage across the whole node.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: memory-hog
+  namespace: devboard
+spec:
+  containers:
+    - name: hog
+      image: busybox:1.36
+      command: ["sh", "-c", "dd if=/dev/zero of=/dev/shm/fill bs=1M count=4000 || sleep 3600"]
+      resources:
+        requests: { memory: 32Mi }
+        # NO LIMIT. That is the entire point.

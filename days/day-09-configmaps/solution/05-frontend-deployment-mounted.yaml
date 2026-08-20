@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: devboard
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+        tier: web
+    spec:
+      volumes:
+        - name: vite-config
+          configMap:
+            name: devboard-vite-config
+
+      containers:
+        - name: frontend
+          image: devboard-frontend:1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 4173
+              name: http
+
+          volumeMounts:
+            # subPath is MANDATORY here.
+            #
+            # Mounting at /app (a directory) would replace the whole directory,
+            # hiding dist/ and node_modules/, and the container dies with
+            # "vite: not found". subPath replaces exactly one file.
+            #
+            # The cost: subPath mounts NEVER live-update. Changing the ConfigMap
+            # needs `kubectl rollout restart deployment/frontend`.
+            - name: vite-config
+              mountPath: /app/vite.config.js
+              subPath: vite.config.js
+              readOnly: true
+
+          livenessProbe:
+            httpGet: { path: /, port: http }
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet: { path: /, port: http }
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          resources:
+            requests: { cpu: 50m, memory: 64Mi }
+            limits:   { cpu: 300m, memory: 256Mi }

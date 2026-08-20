@@ -1,0 +1,16 @@
+# A backend Service under a name the frontend image does NOT know about.
+# On its own this breaks the UI (502). Combined with 04-vite-config-configmap
+# and 05-frontend-deployment-mounted it works -- which is today's main exercise.
+apiVersion: v1
+kind: Service
+metadata:
+  name: devboard-backend      # deliberately NOT "backend"
+  namespace: devboard
+spec:
+  type: ClusterIP
+  selector:
+    app: backend
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http

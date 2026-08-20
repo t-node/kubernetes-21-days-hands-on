@@ -1,0 +1,14 @@
+# Makes `kubectl drain` respect availability instead of evicting everything.
+#
+# Covers VOLUNTARY disruptions only -- drains, node upgrades, cluster-autoscaler
+# scale-down. It does NOT protect against a node crashing or an OOM kill.
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: backend-pdb
+  namespace: devboard
+spec:
+  minAvailable: 1          # or maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: backend

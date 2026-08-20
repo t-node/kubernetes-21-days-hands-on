@@ -1,0 +1,121 @@
+# Backend, tier 2. Go + Gin.
+#
+# New today: the INIT CONTAINER, which is Kubernetes' answer to
+# `depends_on: {postgres: {condition: service_healthy}}` in docker-compose.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: devboard
+  labels:
+    app: backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+        tier: api
+    spec:
+      automountServiceAccountToken: false
+
+      initContainers:
+        # Blocks until Postgres accepts connections. The app container does not
+        # start until this exits 0, so you get a clear Init:0/1 status instead
+        # of a CrashLoopBackOff full of retry noise.
+        #
+        # It only proves what you tell it to check -- it verifies the `postgres`
+        # Service, not whatever POSTGRES_URL happens to say.
+        - name: wait-for-postgres
+          image: postgres:16-alpine
+          command:
+            - sh
+            - -c
+            - |
+              until pg_isready -h "$POSTGRES_HOST" -p "$POSTGRES_PORT" -U "$POSTGRES_USER"; do
+                echo "waiting for postgres at $POSTGRES_HOST:$POSTGRES_PORT ..."
+                sleep 2
+              done
+              echo "postgres is ready"
+          env:
+            - name: POSTGRES_HOST
+              valueFrom:
+                configMapKeyRef: { name: devboard-config, key: POSTGRES_HOST }
+            - name: POSTGRES_PORT
+              valueFrom:
+                configMapKeyRef: { name: devboard-config, key: POSTGRES_PORT }
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef: { name: devboard-config, key: POSTGRES_USER }
+          resources:
+            requests: { cpu: 10m, memory: 16Mi }
+            limits:   { cpu: 100m, memory: 64Mi }
+
+      containers:
+        - name: backend
+          image: devboard-backend:1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+              name: http
+
+          env:
+            # the pieces, defined first so $(VAR) can interpolate them
+            - name: PORT
+              valueFrom:
+                configMapKeyRef: { name: devboard-config, key: PORT }
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef: { name: devboard-config, key: POSTGRES_USER }
+            - name: POSTGRES_HOST
+              valueFrom:
+                configMapKeyRef: { name: devboard-config, key: POSTGRES_HOST }
+            - name: POSTGRES_PORT
+              valueFrom:
+                configMapKeyRef: { name: devboard-config, key: POSTGRES_PORT }
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef: { name: devboard-config, key: POSTGRES_DB }
+            - name: POSTGRES_SSLMODE
+              valueFrom:
+                configMapKeyRef: { name: devboard-config, key: POSTGRES_SSLMODE }
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef: { name: devboard-secrets, key: POSTGRES_PASSWORD }
+            # the composed DSN
+            - name: POSTGRES_URL
+              value: "postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB)?sslmode=$(POSTGRES_SSLMODE)"
+
+          # NOTE: /health does NOT check the database. Correct for liveness,
+          # WRONG for readiness -- these pods stay in the Service endpoints even
+          # when Postgres is unreachable. Day 13 fixes exactly this.
+          livenessProbe:
+            httpGet: { path: /health, port: http }
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet: { path: /health, port: http }
+            initialDelaySeconds: 3
+            periodSeconds: 5
+
+          resources:
+            requests: { cpu: 50m, memory: 32Mi }
+            limits:   { cpu: 300m, memory: 128Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  # NOT a free choice: the frontend image proxies /api to http://backend:8080
+  name: backend
+  namespace: devboard
+spec:
+  type: ClusterIP
+  selector:
+    app: backend
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http

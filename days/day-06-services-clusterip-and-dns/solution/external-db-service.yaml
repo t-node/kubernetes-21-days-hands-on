@@ -1,0 +1,34 @@
+# A Service with NO selector, plus a hand-written EndpointSlice.
+# Gives an in-cluster DNS name to something running outside the cluster --
+# handy when migrating a database in, because app config never changes.
+apiVersion: v1
+kind: Service
+metadata:
+  name: external-db
+  namespace: devboard
+spec:
+  # no selector: nothing auto-populates the endpoints, you do
+  ports:
+    - name: postgres
+      port: 5432
+      targetPort: 5432
+      protocol: TCP
+---
+apiVersion: discovery.k8s.io/v1
+kind: EndpointSlice
+metadata:
+  name: external-db-1
+  namespace: devboard
+  labels:
+    # THIS label is what ties the slice to the Service. Without it, nothing works.
+    kubernetes.io/service-name: external-db
+addressType: IPv4
+ports:
+  - name: postgres
+    port: 5432
+    protocol: TCP
+endpoints:
+  - addresses:
+      - "192.0.2.42"          # a real external IP in your environment
+    conditions:
+      ready: true

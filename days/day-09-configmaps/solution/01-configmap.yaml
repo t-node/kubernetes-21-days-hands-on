@@ -1,0 +1,22 @@
+# Non-sensitive settings only. The password lives in a Secret (Day 10), and
+# POSTGRES_URL is ASSEMBLED from these parts plus the Secret in the pod spec --
+# see Day 10's backend Deployment.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: devboard-config
+  namespace: devboard
+data:
+  # EVERY value must be a STRING. Unquoted 8080 is an int64 and the API
+  # rejects the object with "cannot convert int64 to string".
+  PORT: "8080"
+
+  # Database coordinates -- everything EXCEPT the password.
+  POSTGRES_HOST: "postgres"
+  POSTGRES_PORT: "5432"
+  POSTGRES_DB: "devboard"
+  POSTGRES_USER: "devboard"
+  POSTGRES_SSLMODE: "disable"
+
+  # Used only by the Step 4 "env vars never update" demonstration.
+  DEMO_SETTING: "original"

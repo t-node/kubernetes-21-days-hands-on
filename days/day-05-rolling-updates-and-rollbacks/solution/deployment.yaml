@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: devboard-frontend
+  namespace: devboard
+  annotations:
+    # Shows up as CHANGE-CAUSE in `kubectl rollout history`.
+    # Set this on EVERY change or the history is useless.
+    kubernetes.io/change-cause: "initial deploy nginx 1.25"
+spec:
+  replicas: 5
+  revisionHistoryLimit: 5      # how many old ReplicaSets to keep for rollback
+  minReadySeconds: 5           # a new pod must STAY Ready this long to count
+  progressDeadlineSeconds: 600 # then the rollout is marked failed
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1        # never fewer than 4 available
+      maxSurge: 1              # never more than 6 total
+  selector:
+    matchLabels:
+      app: devboard-frontend
+  template:
+    metadata:
+      labels:
+        app: devboard-frontend
+        version: "1.25"
+    spec:
+      containers:
+        - name: frontend
+          image: nginx:1.25-alpine
+          ports:
+            - containerPort: 80
+              name: http
+          # Without this, "Ready" means "the process started", and the rolling
+          # update is not actually zero-downtime. See Day 13.
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 2
+            periodSeconds: 3

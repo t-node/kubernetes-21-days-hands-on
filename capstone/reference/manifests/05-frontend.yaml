@@ -1,0 +1,139 @@
+# Frontend: Deployment + Service + PodDisruptionBudget
+#
+# ClusterIP, not NodePort. The Ingress is the only way in now.
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: devboard
+  labels:
+    app.kubernetes.io/name: frontend
+    app.kubernetes.io/part-of: devboard
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: frontend
+  ports:
+    - name: http
+      port: 80
+      targetPort: http     # the container's 4173
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: devboard
+  labels:
+    app.kubernetes.io/name: frontend
+    app.kubernetes.io/component: web
+    app.kubernetes.io/part-of: devboard
+  annotations:
+    kubernetes.io/change-cause: "capstone: initial deploy 1.0"
+spec:
+  replicas: 2              # no HPA on this tier, so the field belongs here
+  revisionHistoryLimit: 5
+  minReadySeconds: 5
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: frontend
+
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: frontend
+        app.kubernetes.io/component: web
+        app.kubernetes.io/part-of: devboard
+    spec:
+      serviceAccountName: devboard-frontend
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 30
+
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000            # the `node` user in the node:22-alpine image
+        runAsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: frontend
+
+      volumes:
+        # vite writes a cache; a read-only root filesystem needs somewhere for it
+        - name: tmp
+          emptyDir: {}
+
+      containers:
+        - name: frontend
+          image: devboard-frontend:1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 4173     # vite preview
+              name: http
+
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+
+          # "/" is static asset serving. It deliberately says NOTHING about the
+          # backend, so a backend outage does not restart every frontend pod --
+          # and does not take the UI offline either. The UI should still load
+          # and report the API as unavailable.
+          livenessProbe:
+            httpGet: { path: /, port: http }
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          readinessProbe:
+            httpGet: { path: /, port: http }
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 2
+          # vite preview takes a few seconds to boot. A startup probe keeps
+          # liveness strict afterwards without a large initialDelaySeconds.
+          startupProbe:
+            httpGet: { path: /, port: http }
+            periodSeconds: 3
+            failureThreshold: 20      # 60s budget
+
+          lifecycle:
+            preStop:
+              exec:
+                command: ["sh", "-c", "sleep 5"]
+
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              memory: 256Mi          # no CPU limit -- DECISIONS.md section 1
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: frontend
+  namespace: devboard
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: frontend

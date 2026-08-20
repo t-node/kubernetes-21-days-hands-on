@@ -1,0 +1,24 @@
+# The bluntest targeting tool. Exact label match, all or nothing.
+# Ask for a label no node has and the pods stay Pending forever.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ssd-only
+  namespace: devboard
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      demo: nodeselector
+  template:
+    metadata:
+      labels:
+        demo: nodeselector
+    spec:
+      nodeSelector:
+        disktype: ssd          # only devops-worker carries this label
+      containers:
+        - name: app
+          image: nginx:1.27-alpine
+          resources:
+            requests: { cpu: 10m, memory: 16Mi }

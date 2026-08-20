@@ -1,0 +1,91 @@
+# DELIBERATELY A DEPLOYMENT, AND DELIBERATELY emptyDir.
+#
+# Both are wrong for a database, and you fix both later:
+#   Day 14 -> a PersistentVolumeClaim instead of emptyDir
+#   Day 15 -> a StatefulSet instead of a Deployment
+#
+# Running it the wrong way first makes the failure modes concrete. Scale this
+# to 2 replicas and watch two independent databases appear (Break It A).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: devboard
+  labels:
+    app: postgres
+spec:
+  replicas: 1               # NEVER raise this on a Deployment-managed database
+  strategy:
+    type: Recreate          # never run two postmasters against one data dir
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+        tier: data
+    spec:
+      automountServiceAccountToken: false
+
+      volumes:
+        # Scratch space that dies with the pod. Day 14 replaces this with a PVC.
+        - name: data
+          emptyDir: {}
+        # The real DevBoard schema + seed, from the ConfigMap.
+        - name: init
+          configMap:
+            name: postgres-init
+
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          ports:
+            - containerPort: 5432
+              name: postgres
+
+          env:
+            # Non-sensitive: from the ConfigMap (Day 09)
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef: { name: devboard-config, key: POSTGRES_DB }
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef: { name: devboard-config, key: POSTGRES_USER }
+            # Sensitive: from the Secret (Day 10)
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef: { name: devboard-secrets, key: POSTGRES_PASSWORD }
+            # THE SUBDIRECTORY TRICK -- see section 11.3. Without this, a real
+            # PV containing lost+found makes initdb fail with
+            # "exists but is not empty".
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+            - name: init
+              mountPath: /docker-entrypoint-initdb.d
+              readOnly: true
+
+          # pg_isready is the correct probe: it checks the server ACCEPTS
+          # CONNECTIONS, not merely that a process exists.
+          readinessProbe:
+            exec:
+              command: ["sh", "-c", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"]
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 6
+          livenessProbe:
+            exec:
+              command: ["sh", "-c", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"]
+            initialDelaySeconds: 30     # generous: initdb + seeding takes time
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+          resources:
+            requests: { cpu: 100m, memory: 128Mi }
+            limits:   { cpu: 500m, memory: 512Mi }

@@ -1,0 +1,16 @@
+# Headless: no ClusterIP, no kube-proxy rules, no load balancing.
+# DNS returns the A records of the individual pods instead of one virtual IP.
+# This is what StatefulSets need (Day 15) so you can address one specific pod.
+apiVersion: v1
+kind: Service
+metadata:
+  name: demo-backend-headless
+  namespace: devboard
+spec:
+  clusterIP: None             # <- this single line makes it headless
+  selector:
+    app: demo-backend
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http

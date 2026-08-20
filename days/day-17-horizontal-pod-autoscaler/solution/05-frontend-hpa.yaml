@@ -1,0 +1,27 @@
+# Each tier scales on its own signal.
+#
+# The frontend is a Node process serving static assets and proxying /api, so it
+# is more memory-hungry and less CPU-bound than the Go backend. A higher CPU
+# target is appropriate.
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: frontend
+  namespace: devboard
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: frontend
+  minReplicas: 2
+  maxReplicas: 6
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300

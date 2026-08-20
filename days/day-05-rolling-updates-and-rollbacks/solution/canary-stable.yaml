@@ -1,0 +1,24 @@
+# The "stable" 90% of a hand-rolled canary.
+# Both this and canary-canary.yaml carry app=canary-demo, so ONE Service with
+# selector {app: canary-demo} sends traffic to both, split by replica ratio.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: canary-demo-stable
+  namespace: devboard
+spec:
+  replicas: 9
+  selector:
+    matchLabels:
+      app: canary-demo
+      track: stable
+  template:
+    metadata:
+      labels:
+        app: canary-demo      # the shared label the Service selects
+        track: stable
+        version: v1
+    spec:
+      containers:
+        - name: app
+          image: nginx:1.25-alpine

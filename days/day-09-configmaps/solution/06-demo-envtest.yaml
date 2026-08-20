@@ -1,0 +1,38 @@
+# One pod, one ConfigMap, TWO consumption styles -- so you can watch them
+# diverge when the ConfigMap changes.
+#
+#   kubectl patch configmap devboard-config -n devboard \
+#     -p '{"data":{"DEMO_SETTING":"changed"}}'
+#
+#   kubectl exec -n devboard envtest -- env | grep DEMO_SETTING   # NEVER changes
+#   kubectl exec -n devboard envtest -- cat /config/DEMO_SETTING  # changes in ~60s
+apiVersion: v1
+kind: Pod
+metadata:
+  name: envtest
+  namespace: devboard
+spec:
+  volumes:
+    - name: config
+      configMap:
+        name: devboard-config
+  containers:
+    - name: shell
+      image: busybox:1.36
+      command:
+        - sh
+        - -c
+        - |
+          while true; do
+            echo "$(date +%T)  env=${DEMO_SETTING}  file=$(cat /config/DEMO_SETTING)"
+            sleep 15
+          done
+      env:
+        - name: DEMO_SETTING
+          valueFrom:
+            configMapKeyRef:
+              name: devboard-config
+              key: DEMO_SETTING
+      volumeMounts:
+        - name: config
+          mountPath: /config

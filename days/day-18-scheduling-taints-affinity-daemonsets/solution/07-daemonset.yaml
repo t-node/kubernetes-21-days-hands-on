@@ -1,0 +1,71 @@
+# One pod on EVERY node -- including the control plane, because of the
+# tolerations below.
+#
+# There is no `replicas` field. The node count IS the replica count: add a node
+# and a pod appears on it automatically; cordon one and DESIRED drops.
+#
+# This is the shape of every real node agent: Fluent Bit, node-exporter,
+# Filebeat, the CNI, kube-proxy, CSI node plugins, security agents.
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: node-logger
+  namespace: devboard
+  labels:
+    app: node-logger
+spec:
+  selector:
+    matchLabels:
+      app: node-logger
+  template:
+    metadata:
+      labels:
+        app: node-logger
+    spec:
+      # A node agent must run EVERYWHERE, so it tolerates everything.
+      # `operator: Exists` with no key matches ANY taint -- powerful, and worth
+      # being deliberate about.
+      tolerations:
+        - operator: Exists
+          effect: NoSchedule
+        - operator: Exists
+          effect: NoExecute
+
+      # The legitimate use of hostPath from Day 14: reading node-level state.
+      # Note this is also why granting someone the right to create DaemonSets
+      # is close to granting node access.
+      volumes:
+        - name: varlog
+          hostPath:
+            path: /var/log
+            type: Directory
+
+      containers:
+        - name: logger
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              echo "node-logger starting on node ${NODE_NAME}"
+              while true; do
+                echo "$(date +%T) ${NODE_NAME}: $(ls /host/var/log | wc -l) log paths"
+                sleep 30
+              done
+          env:
+            # The downward API: inject facts about the pod's environment.
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+          volumeMounts:
+            - name: varlog
+              mountPath: /host/var/log
+              readOnly: true
+          resources:
+            requests: { cpu: 10m, memory: 16Mi }
+            limits:   { cpu: 50m, memory: 64Mi }

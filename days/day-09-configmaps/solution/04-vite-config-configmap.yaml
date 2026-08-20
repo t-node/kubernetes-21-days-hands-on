@@ -1,0 +1,29 @@
+# A replacement for /app/vite.config.js inside the frontend image.
+#
+# The image ships that file with target "http://backend:8080" compiled in.
+# Mounting this ConfigMap over that path changes where /api goes -- no rebuild,
+# no fork of the upstream repo.
+#
+# This is THE pattern for running third-party images in Kubernetes:
+# when an image hardcodes something you must change, mount over its config file.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: devboard-vite-config
+  namespace: devboard
+data:
+  vite.config.js: |
+    // Mounted from a ConfigMap, replacing the file baked into the image.
+    // `vite preview` reads this to serve the built SPA on :4173 and to proxy
+    // /api/* to the Go backend with the /api prefix stripped.
+    export default {
+      preview: {
+        proxy: {
+          "/api": {
+            target: "http://devboard-backend:8080",
+            changeOrigin: true,
+            rewrite: (path) => path.replace(/^\/api/, ""),
+          },
+        },
+      },
+    };

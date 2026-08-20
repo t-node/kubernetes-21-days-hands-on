@@ -1,0 +1,31 @@
+# Break It exercise A: one typo in an interpolated variable name.
+#
+# POSTGRES_HOSTNAME is never defined, so Kubernetes leaves "$(POSTGRES_HOSTNAME)"
+# LITERALLY in the value. No error, no warning, no admission failure. The app
+# then tries to resolve a hostname that is a placeholder string.
+#
+#   kubectl logs dsn-demo-broken -n devboard
+apiVersion: v1
+kind: Pod
+metadata:
+  name: dsn-demo-broken
+  namespace: devboard
+spec:
+  automountServiceAccountToken: false
+  containers:
+    - name: shell
+      image: busybox:1.36
+      command: ["sh", "-c", "env | grep POSTGRES_URL; sleep 3600"]
+      env:
+        - name: POSTGRES_USER
+          valueFrom:
+            configMapKeyRef: { name: devboard-config, key: POSTGRES_USER }
+        - name: POSTGRES_DB
+          valueFrom:
+            configMapKeyRef: { name: devboard-config, key: POSTGRES_DB }
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef: { name: devboard-secrets, key: POSTGRES_PASSWORD }
+        - name: POSTGRES_URL
+          # POSTGRES_HOSTNAME does not exist -- that is the whole point
+          value: "postgres://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOSTNAME):5432/$(POSTGRES_DB)?sslmode=disable"

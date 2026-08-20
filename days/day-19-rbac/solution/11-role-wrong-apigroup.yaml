@@ -1,0 +1,30 @@
+# Break It C: `deployments` listed under the CORE group ("") instead of "apps".
+#
+# The object is ACCEPTED WITHOUT ERROR -- RBAC does not validate that a resource
+# exists in the group you named -- and grants exactly nothing. Silent failure.
+#
+#   kubectl api-resources | grep -E "^deployments"
+#   -> deployments  deploy  apps/v1  true  Deployment
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: wrong-apigroup
+  namespace: devboard
+rules:
+  - apiGroups: [""]              # WRONG: deployments live in "apps"
+    resources: ["deployments"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: wrong-apigroup-binding
+  namespace: devboard
+subjects:
+  - kind: ServiceAccount
+    name: devboard-wrong
+    namespace: devboard
+roleRef:
+  kind: Role
+  name: wrong-apigroup
+  apiGroup: rbac.authorization.k8s.io

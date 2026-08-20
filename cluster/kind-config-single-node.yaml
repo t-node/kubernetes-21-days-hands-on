@@ -1,0 +1,28 @@
+# Fallback for machines with limited RAM (< 8 GB free) or slow disks.
+# Everything in this course works on a single node except the Day 18
+# multi-node scheduling exercises, which will note the difference.
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: devops
+nodes:
+  - role: control-plane
+    image: kindest/node:v1.31.4
+    extraPortMappings:
+      - containerPort: 30080
+        hostPort: 30080
+        protocol: TCP
+      - containerPort: 30081
+        hostPort: 30081
+        protocol: TCP
+      - containerPort: 80
+        hostPort: 8080
+        protocol: TCP
+      - containerPort: 443
+        hostPort: 8443
+        protocol: TCP
+    kubeadmConfigPatches:
+      - |
+        kind: InitConfiguration
+        nodeRegistration:
+          kubeletExtraArgs:
+            node-labels: "ingress-ready=true"

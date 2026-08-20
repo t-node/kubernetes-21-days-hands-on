@@ -1,0 +1,20 @@
+# Requests the scheduler cannot satisfy on any single node.
+#
+#   kubectl describe pod greedy -n devboard | tail -6
+#   -> 0/3 nodes are available: 3 Insufficient memory.
+#
+# NOTHING is actually using that memory. The scheduler refuses purely on the
+# SUM OF REQUESTS. This is the most common cause of Pending in real clusters,
+# and the reason inflated requests cost real money.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: greedy
+  namespace: devboard
+spec:
+  containers:
+    - name: app
+      image: nginx:1.27-alpine
+      resources:
+        requests:
+          memory: 100Gi        # more than any node has
