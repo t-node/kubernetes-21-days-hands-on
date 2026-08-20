@@ -1,0 +1,35 @@
+# CertificateSigningRequest template.
+#
+# Generate the request field with:
+#     cat user.csr | base64 -w 0
+#     cat user.csr | base64 | tr -d '\n'      # macOS -- no -w flag
+#
+# WITHOUT -w 0 the output wraps at 76 characters and you get:
+#     error: illegal base64 data at input byte ...
+#
+# Or build the whole file in one go:
+#
+#   cat > csr.yaml <<EOF
+#   ...
+#     request: $(cat user.csr | base64 -w 0)
+#   EOF
+apiVersion: certificates.k8s.io/v1
+kind: CertificateSigningRequest
+metadata:
+  # This becomes the CSR OBJECT name. It does NOT set the username --
+  # the username is the CN inside the request itself.
+  name: akshay
+spec:
+  # kubernetes.io/kube-apiserver-client  -> a human or service client
+  # kubernetes.io/kube-apiserver-client-kubelet -> kubelet client (auto-approved)
+  # kubernetes.io/kubelet-serving        -> kubelet serving certificate
+  signerName: kubernetes.io/kube-apiserver-client
+
+  # Requested validity. The signer may issue a shorter one. 1.22+
+  expirationSeconds: 86400          # 24 hours
+
+  usages:
+    - client auth                   # "server auth" for a serving certificate
+
+  # base64 of the .csr file, ON ONE LINE
+  request: REPLACE_ME

@@ -29,19 +29,21 @@ Roughly 40 percent overlaps. This track holds the other 60 percent.
 | [01](01-container-runtimes-and-crictl/) | Container runtimes: CRI, OCI, `ctr` / `nerdctl` / `crictl` | Day 01, Day 08 used `crictl` without ever teaching it |
 | [02](02-etcd-and-cluster-data/) | etcd: key-value model, `etcdctl`, the `/registry` tree | nothing in the main track touched etcd hands-on |
 | [03](03-commands-and-arguments/) | `ENTRYPOINT`/`CMD` vs `command`/`args`, pod immutability, `replace --force` | the main track never explained why a container exits |
+| [04](04-kubeconfig-and-the-api/) | kubeconfig in depth, API groups, `kubectl proxy`, raw `curl` | Day 01 showed `current-context` and stopped |
+| [05](05-certificates-api-and-authorization/) | CSR objects, approve/deny, authorization modes | Day 19 said "do not run it" |
 
 ## Pending the rest of the transcript
 
-The source course has **310 lectures**; the pastes so far have supplied **30**
-(lectures 1-13 and 91-107). These topics are named in the section list but their lectures
+The source course has **310 lectures**; the pastes so far have supplied **43**
+(lectures 1-13, 91-107 and 152-164). These topics are named in the section list but their lectures
 have not arrived yet, so nothing here covers them:
 
 - kube-scheduler, kube-controller-manager, kubelet, kube-proxy in depth
 - Secrets (the lecture cut off mid-sentence — Day 10 covers the ground)
-- **TLS certificates** — the single biggest CKA topic
 - **etcd backup and restore** — a near-guaranteed exam task
 - kubeadm cluster bootstrap, cluster upgrades, OS upgrades
-- Security: authentication, authorization modes, certificates API, admission
+- TLS certificate *generation* for cluster components (the CSR API is now covered)
+- Admission controllers
 - Networking: CNI, CoreDNS, kube-proxy internals, NetworkPolicy
 - Storage: CSI, volume types
 - Scheduling: static pods, multiple schedulers, priority classes

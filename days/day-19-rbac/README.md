@@ -34,6 +34,12 @@ question.
 ServiceAccounts, by contrast, **are** real API objects — they are identities for
 *pods*, not for people.
 
+> **RBAC is one of five authorization modes.** The others are Node, ABAC,
+> Webhook, and AlwaysAllow/AlwaysDeny, set together on the API server with
+> `--authorization-mode=Node,RBAC`. If that flag is absent it defaults to
+> **AlwaysAllow** and every RBAC rule in this day becomes decorative.
+> [CKA 05](../../cka/05-certificates-api-and-authorization/) covers the chain.
+
 ### 19.2 The four objects
 
 | Object | Scope | Says |
@@ -394,7 +400,19 @@ kubectl delete pod tokencheck -n devboard
 `ca.crt`, `namespace` and `token` — a working cluster credential, mounted by
 default, in a pod that has no use for it.
 
-### Step 9: Real human users (read this, do not run it)
+### Step 9: Real human users
+
+> **This section used to say "read this, do not run it."** There is now a full
+> hands-on lab for it: **[CKA 05 — the Certificates API and authorization
+> modes](../../cka/05-certificates-api-and-authorization/)** walks the whole
+> flow — generate a key, submit a `CertificateSigningRequest`, approve it,
+> extract the certificate, build a kubeconfig, and discover the new user is
+> authenticated but authorised for nothing. It also covers denying a hostile
+> CSR and the five authorization modes RBAC sits inside.
+>
+> Read the summary below first, then go do it.
+
+#### Real human users, in summary
 
 For people, RBAC binds to strings the authenticator asserts. Creating a
 certificate-based user looks like this:

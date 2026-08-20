@@ -173,6 +173,8 @@ any time after Day 01.
 | [01](cka/01-container-runtimes-and-crictl/) | Container runtimes: CRI, OCI, `ctr` / `nerdctl` / `crictl` | debugging a node when `kubectl` itself is down |
 | [02](cka/02-etcd-and-cluster-data/) | etcd: the key-value model, `etcdctl`, the `/registry` tree | reading cluster state straight from the datastore |
 | [03](cka/03-commands-and-arguments/) | `ENTRYPOINT`/`CMD` vs `command`/`args`, pod immutability | why a container exits, and how to edit a live pod |
+| [04](cka/04-kubeconfig-and-the-api/) | kubeconfig, API groups, `kubectl proxy`, raw `curl` | connecting to any cluster, and the API underneath |
+| [05](cka/05-certificates-api-and-authorization/) | CSR objects, approve/deny, authorization modes | onboarding a user, and what RBAC sits inside |
 
 More arrives as the source transcripts do — see
 [cka/README.md](cka/README.md) for what is covered and what is still pending.
