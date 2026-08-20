@@ -1,0 +1,21 @@
+# A pod that opts in to in-place resize, per resource.
+#
+# CPU:    NotRequired     -> changed live, no restart
+# memory: RestartContainer -> this CONTAINER restarts; the pod does not
+apiVersion: v1
+kind: Pod
+metadata:
+  name: resizable
+  namespace: cka11
+spec:
+  containers:
+    - name: app
+      image: nginx:alpine
+      resizePolicy:
+        - resourceName: cpu
+          restartPolicy: NotRequired
+        - resourceName: memory
+          restartPolicy: RestartContainer
+      resources:
+        requests: {cpu: "100m", memory: "64Mi"}
+        limits:   {cpu: "200m", memory: "128Mi"}

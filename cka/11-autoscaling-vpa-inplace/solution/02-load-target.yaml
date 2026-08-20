@@ -1,0 +1,26 @@
+# The workload the VPA will observe. It burns a predictable amount of CPU, and
+# its requests are deliberately far too small so the recommendation is obvious.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hungry
+  namespace: cka11
+  labels: {app: hungry}
+spec:
+  replicas: 2
+  selector:
+    matchLabels: {app: hungry}
+  template:
+    metadata:
+      labels: {app: hungry}
+    spec:
+      containers:
+        - name: app
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - "while true; do :; done"      # one busy loop == ~1 core
+          resources:
+            requests: {cpu: "50m", memory: "32Mi"}     # far below actual use
+            limits:   {cpu: "500m", memory: "128Mi"}

@@ -717,4 +717,7 @@ kubectl get all -A -o yaml > backup.yaml       # INCOMPLETE -- see 6.7
 
 ---
 
+**Previous:** [CKA 11 — Autoscaling: In-Place Resize and the Vertical Pod Autoscaler](../11-autoscaling-vpa-inplace/)
+**Next: CKA 13 — TLS in Kubernetes** *(not yet built — see [CURRICULUM.md](../CURRICULUM.md))*
+
 **Back to the [CKA track](../) · [Main course](../../README.md)**

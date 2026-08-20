@@ -1,0 +1,16 @@
+# A throwaway single-node cluster with the InPlacePodVerticalScaling feature
+# gate on, so the main `devops` cluster is left alone.
+#
+#   kind create cluster --name resize-lab --config solution/kind-inplace-resize.yaml
+#
+# kind's top-level `featureGates` is applied to the API server, the controller
+# manager, the scheduler AND the kubelet. Setting the gate on only the API
+# server is not enough -- the kubelet is the component that actually rewrites
+# the cgroup values.
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+featureGates:
+  InPlacePodVerticalScaling: true
+nodes:
+  - role: control-plane
+    image: kindest/node:v1.31.4

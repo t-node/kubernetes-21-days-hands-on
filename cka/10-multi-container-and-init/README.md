@@ -575,4 +575,4 @@ kubectl get pods -A -o json | jq -r '.items[] | select(.spec.containers | length
 ---
 
 **Previous:** [CKA 09 — Encrypting Secret Data at Rest](../09-encryption-at-rest/)
-**Next: CKA 11 — Autoscaling: VPA and In-Place Resize** *(not yet built — see [CURRICULUM.md](../CURRICULUM.md))*
+**Next:** [CKA 11 — Autoscaling: In-Place Resize and the Vertical Pod Autoscaler](../11-autoscaling-vpa-inplace/)
