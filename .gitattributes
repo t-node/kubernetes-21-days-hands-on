@@ -5,4 +5,7 @@
 *.yml           text eol=lf
 Dockerfile      text eol=lf
 *.Dockerfile    text eol=lf
+
+# Python served into containers from a ConfigMap -- keep LF
+*.py            text eol=lf
 *.ps1           text eol=crlf
