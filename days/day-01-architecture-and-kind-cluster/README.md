@@ -404,6 +404,58 @@ exit
 That `crictl ps` is worth pausing on: there is no Docker daemon inside the node.
 containerd is the runtime. This is the CRI point from section 1.1, made concrete.
 
+### Step 6b: Find any component's configuration — three places
+
+**This is an exam skill, not trivia.** When you are asked to change a
+control-plane flag, you must know where that flag actually lives. There are
+exactly three answers, and which one applies depends on how the cluster was
+built.
+
+**1. kubeadm clusters (yours, and most real ones): static pod manifests.**
+
+```bash
+docker exec devops-control-plane ls /etc/kubernetes/manifests/
+docker exec devops-control-plane sh -c "grep -E '^\s+- --' /etc/kubernetes/manifests/kube-apiserver.yaml | head -20"
+```
+
+Edit a file there and the **kubelet notices and recreates the pod by itself**.
+There is no service to restart and nothing to `kubectl apply` — the file *is*
+the deployment mechanism.
+
+**2. Built from scratch: systemd units.**
+
+```
+/etc/systemd/system/kube-apiserver.service
+```
+
+Here you would edit the unit, then `systemctl daemon-reload` and
+`systemctl restart kube-apiserver`. Your kind cluster has no such file — but
+recognise the layout, because "the hard way" clusters and older documentation
+use it.
+
+**3. Either way: ask the running process.**
+
+```bash
+docker exec devops-control-plane sh -c "ps aux | grep [k]ube-apiserver | xargs -n1 | grep '^--' | head -25"
+```
+
+This is the most reliable of the three, because it shows the flags **actually in
+effect** rather than what a file claims. When a manifest edit has not taken hold,
+this is how you prove it.
+
+Try the same three approaches on the scheduler and controller manager:
+
+```bash
+docker exec devops-control-plane sh -c "grep -E '^\s+- --' /etc/kubernetes/manifests/kube-scheduler.yaml"
+docker exec devops-control-plane sh -c "grep -E '^\s+- --' /etc/kubernetes/manifests/kube-controller-manager.yaml"
+```
+
+> Two related deep-dives now live in the **[CKA track](../../cka/)**:
+> [container runtimes and `crictl`](../../cka/01-container-runtimes-and-crictl/)
+> for debugging a node when `kubectl` itself is down, and
+> [etcd](../../cka/02-etcd-and-cluster-data/) for reading your cluster's data
+> out of the datastore directly.
+
 ### Step 7: Understand kubeconfig
 
 ```bash

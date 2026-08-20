@@ -161,6 +161,23 @@ Budget **45 to 90 minutes per day.** Days 11 to 17 are heavier; give them more.
 
 ---
 
+## CKA track (parallel, optional)
+
+The 21 days teach you to **deploy an application**. The Certified Kubernetes
+Administrator exam tests something different: running and repairing the
+**cluster itself**. That material lives in **[`cka/`](cka/)** and can be taken
+any time after Day 01.
+
+| # | Topic | Why it is not in the main track |
+|:--:|---|---|
+| [01](cka/01-container-runtimes-and-crictl/) | Container runtimes: CRI, OCI, `ctr` / `nerdctl` / `crictl` | debugging a node when `kubectl` itself is down |
+| [02](cka/02-etcd-and-cluster-data/) | etcd: the key-value model, `etcdctl`, the `/registry` tree | reading cluster state straight from the datastore |
+
+More arrives as the source transcripts do — see
+[cka/README.md](cka/README.md) for what is covered and what is still pending.
+
+---
+
 ## Reference material (use these all course long)
 
 - **[SETUP.md](SETUP.md)** — install Docker, kind and kubectl on Windows, macOS or Linux
