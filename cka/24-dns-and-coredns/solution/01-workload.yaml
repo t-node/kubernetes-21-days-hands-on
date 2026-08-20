@@ -1,0 +1,53 @@
+# Everything needed to exercise the naming scheme in 24.1:
+#   - a normal Service          -> one A record
+#   - a headless Service        -> one A record per ready endpoint
+#   - a StatefulSet             -> stable per-pod names
+#   - a NAMED port              -> an SRV record exists
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web
+  namespace: cka24
+spec:
+  selector: {app: web}
+  ports:
+    # The port MUST be named for an SRV record to exist:
+    #   _http._tcp.web.cka24.svc.cluster.local
+    - {name: http, protocol: TCP, port: 80, targetPort: 80}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-headless
+  namespace: cka24
+spec:
+  clusterIP: None
+  selector: {app: web}
+  ports:
+    - {name: http, protocol: TCP, port: 80, targetPort: 80}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: web
+  namespace: cka24
+spec:
+  serviceName: web-headless      # this is what gives pods their DNS names
+  replicas: 3
+  selector:
+    matchLabels: {app: web}
+  template:
+    metadata:
+      labels: {app: web}
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.27-alpine
+          ports:
+            - {name: http, containerPort: 80}
+          readinessProbe:
+            httpGet: {path: /, port: 80}
+            periodSeconds: 3
+          resources:
+            requests: {cpu: "10m", memory: "16Mi"}

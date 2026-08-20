@@ -759,4 +759,4 @@ kubectl describe svc web | grep -A2 Endpoints
 ---
 
 **Previous:** [CKA 22 — Pod Networking and CNI](../22-pod-networking-and-cni/)
-**Next: CKA 24 — DNS and CoreDNS** *(not yet built — see [CURRICULUM.md](../CURRICULUM.md))*
+**Next:** [CKA 24 — DNS and CoreDNS](../24-dns-and-coredns/)
