@@ -1,0 +1,12 @@
+# The corrected version, and the pod used for the immutability exercise.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: sleeper-quoted
+spec:
+  restartPolicy: Never
+  containers:
+    - name: sleeper
+      image: ubuntu-sleeper:1.0
+      imagePullPolicy: IfNotPresent
+      args: ["5000"]

@@ -28,14 +28,16 @@ Roughly 40 percent overlaps. This track holds the other 60 percent.
 |---|---|---|
 | [01](01-container-runtimes-and-crictl/) | Container runtimes: CRI, OCI, `ctr` / `nerdctl` / `crictl` | Day 01, Day 08 used `crictl` without ever teaching it |
 | [02](02-etcd-and-cluster-data/) | etcd: key-value model, `etcdctl`, the `/registry` tree | nothing in the main track touched etcd hands-on |
+| [03](03-commands-and-arguments/) | `ENTRYPOINT`/`CMD` vs `command`/`args`, pod immutability, `replace --force` | the main track never explained why a container exits |
 
 ## Pending the rest of the transcript
 
-The source course has **310 lectures**; the paste that produced these two days
-contained **13**. These topics are named in the section list but their lectures
+The source course has **310 lectures**; the pastes so far have supplied **30**
+(lectures 1-13 and 91-107). These topics are named in the section list but their lectures
 have not arrived yet, so nothing here covers them:
 
 - kube-scheduler, kube-controller-manager, kubelet, kube-proxy in depth
+- Secrets (the lecture cut off mid-sentence — Day 10 covers the ground)
 - **TLS certificates** — the single biggest CKA topic
 - **etcd backup and restore** — a near-guaranteed exam task
 - kubeadm cluster bootstrap, cluster upgrades, OS upgrades

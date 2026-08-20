@@ -242,6 +242,72 @@ devboard-frontend-7d9f8c4b5   0         0         0     <- old (1.25), kept
 `kubectl set image` is convenient for a demo, but in real work you edit the
 manifest and `kubectl apply` so git stays the source of truth.
 
+### Step 2b: Watch the rollout happen, request by request
+
+Counting pods tells you the mechanism. Watching *traffic* tells you whether it
+actually worked — and it is far more convincing.
+
+Build a v2 image first if you have not (Day 08):
+
+```bash
+bash app/build-images.sh 2.0
+```
+
+Terminal 1:
+
+```bash
+bash days/day-05-rolling-updates-and-rollbacks/solution/rollout-watch.sh
+```
+
+It polls the app continuously and prints one character per request:
+`1` served by v1.0, `2` served by v2.0, `X` failed.
+
+Terminal 2:
+
+```bash
+kubectl set image deployment/frontend frontend=devboard-frontend:2.0 -n devboard
+```
+
+Terminal 1 shows the transition:
+
+```
+1111111111111111 1112111121112211 2222122222222222 2222222222222222
+```
+
+Old and new **serving simultaneously**, gradually shifting, and — the part that
+matters — **not a single `X`**. That is what zero-downtime means, measured
+rather than asserted.
+
+> The mixed middle section is worth pausing on. During a rolling update, two
+> versions of your application serve real users at the same time. Any change
+> that cannot tolerate that — an incompatible database schema, a changed API
+> contract — will break here and nowhere else. It is why Day 05's interview
+> question on migrations has the answer "expand, migrate, contract".
+
+Now do the same with the Recreate strategy and watch it fail:
+
+```bash
+kubectl patch deployment frontend -n devboard -p '{"spec":{"strategy":{"type":"Recreate","rollingUpdate":null}}}'
+
+kubectl set image deployment/frontend frontend=devboard-frontend:1.0 -n devboard
+```
+
+```
+2222222222 XXXXXXXXXXXXXXXXXXXXXXXX 1111111111
+            ^^^^^^^^^^^^^^^^^^^^^^^
+            every pod gone -- this is the outage
+```
+
+A visible block of failures, exactly as long as it takes new pods to start.
+Ctrl-C prints the totals. Put it back:
+
+```bash
+kubectl patch deployment frontend -n devboard -p '{"spec":{"strategy":{"type":"RollingUpdate","rollingUpdate":{"maxUnavailable":1,"maxSurge":1}}}}'
+```
+
+**Keep this script.** It is the fastest way to answer "did that deploy actually
+cause an outage?" and you will reuse it on Day 13 for graceful shutdown.
+
 ### Step 3: The change-cause annotation
 
 ```bash

@@ -1,0 +1,19 @@
+# REJECTED ON PURPOSE.
+#
+#   cannot unmarshal number into Go struct field
+#   Container.spec.containers.args of type string
+#
+# YAML parses an unquoted 5000 as an integer; command and args are string
+# arrays. Same family as Day 09's ConfigMap "cannot convert int64 to string".
+# Quote every numeric value in YAML and you never meet either.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: sleeper-unquoted
+spec:
+  restartPolicy: Never
+  containers:
+    - name: sleeper
+      image: ubuntu-sleeper:1.0
+      imagePullPolicy: IfNotPresent
+      args: [5000]        # <- must be ["5000"]

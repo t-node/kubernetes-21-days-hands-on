@@ -1,0 +1,23 @@
+# WHY EXEC FORM MATTERS -- Break It A.
+#
+# This runs the SHELL form, so PID 1 becomes /bin/sh and `sleep` is its child.
+# SIGTERM goes to the shell, which does not forward it, so the kubelet waits out
+# the full terminationGracePeriodSeconds and then SIGKILLs.
+#
+#   kubectl exec shell-form -- cat /proc/1/cmdline | tr '\0' ' '
+#   time kubectl delete pod shell-form      # ~30s
+#
+# Compare with 03-quoted-number.yaml, which deletes almost instantly.
+#
+# At 30 seconds per pod, this is the difference between a fast rolling update
+# and one that crawls.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: shell-form
+spec:
+  restartPolicy: Never
+  containers:
+    - name: sleeper
+      image: ubuntu:22.04
+      command: ["/bin/sh", "-c", "sleep 300"]    # shell form: sh becomes PID 1
