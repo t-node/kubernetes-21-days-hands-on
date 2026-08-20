@@ -609,4 +609,4 @@ kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}{"\n"}'
 ---
 
 **Previous:** [CKA 25 — Ingress and Gateway API in Depth](../25-ingress-gateway-in-depth/)
-**Next: CKA 27 — Build a Cluster with kubeadm** *(not yet built — see [CURRICULUM.md](../CURRICULUM.md))*
+**Next:** [CKA 27 — Build a Cluster with kubeadm](../27-build-a-cluster-with-kubeadm/)
