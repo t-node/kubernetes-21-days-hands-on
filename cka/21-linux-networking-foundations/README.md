@@ -573,4 +573,4 @@ kernel which route it *would* choose, rather than making you read the table.
 ---
 
 **Previous:** [CKA 20 — Storage Internals, Provisioners and CSI](../20-storage-internals-and-csi/)
-**Next: CKA 22 — Pod Networking and CNI** *(not yet built — see [CURRICULUM.md](../CURRICULUM.md))*
+**Next:** [CKA 22 — Pod Networking and CNI](../22-pod-networking-and-cni/)

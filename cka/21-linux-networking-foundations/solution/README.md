@@ -316,7 +316,7 @@ rule. If you would rather be certain, run the whole assignment against
 
 **The CNI plugin itself.** Watching a plugin do this work — the `ADD` and `DEL`
 operations, the config in `/etc/cni/net.d/`, the binaries in `/opt/cni/bin/` —
-is [CKA 22](../../CURRICULUM.md)'s subject. This assignment stops at the
+is [CKA 22](../../22-pod-networking-and-cni/)'s subject. This assignment stops at the
 primitives so that CKA 22 can be about the automation rather than about veth
 pairs.
 

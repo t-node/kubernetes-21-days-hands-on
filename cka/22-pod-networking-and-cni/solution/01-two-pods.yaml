@@ -1,0 +1,38 @@
+# Two pods forced onto DIFFERENT nodes, to prove requirement 4 of the
+# Kubernetes network model: pod-to-pod traffic is not NAT'd, even across nodes.
+#
+# The server logs the source address it sees. If that address is the client
+# POD's IP rather than a node IP, there is no NAT in the path.
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: echo-server
+  namespace: default
+  labels: {app: nat-test, role: server}
+spec:
+  containers:
+    - name: nginx
+      image: nginx:1.27-alpine
+      ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: echo-client
+  namespace: default
+  labels: {app: nat-test, role: client}
+spec:
+  affinity:
+    podAntiAffinity:
+      # Land on a different node from the server, so the packet crosses the
+      # node-to-node path where an overlay or NAT would show up.
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchLabels: {app: nat-test, role: server}
+          topologyKey: kubernetes.io/hostname
+  containers:
+    - name: client
+      image: busybox:1.36
+      command: ["sh", "-c", "sleep 3600"]
