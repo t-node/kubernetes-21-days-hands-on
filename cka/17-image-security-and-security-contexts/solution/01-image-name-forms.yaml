@@ -1,0 +1,39 @@
+# Four ways of writing the SAME image, plus one that is genuinely different.
+# Apply this and compare `kubectl get pods -o custom-columns=...IMAGE...`
+# against `crictl images` on the node.
+---
+apiVersion: v1
+kind: Pod
+metadata: {name: name-short, namespace: cka17}
+spec:
+  containers:
+    - name: c
+      image: nginx:1.27-alpine                       # docker.io/library/nginx
+      command: ["sleep", "3600"]
+---
+apiVersion: v1
+kind: Pod
+metadata: {name: name-with-account, namespace: cka17}
+spec:
+  containers:
+    - name: c
+      image: library/nginx:1.27-alpine               # same thing, spelled out
+      command: ["sleep", "3600"]
+---
+apiVersion: v1
+kind: Pod
+metadata: {name: name-fully-qualified, namespace: cka17}
+spec:
+  containers:
+    - name: c
+      image: docker.io/library/nginx:1.27-alpine     # same thing again
+      command: ["sleep", "3600"]
+---
+apiVersion: v1
+kind: Pod
+metadata: {name: name-other-registry, namespace: cka17}
+spec:
+  containers:
+    - name: c
+      # NOT Docker Hub. The registry must be spelled out or this cannot resolve.
+      image: registry.k8s.io/pause:3.9

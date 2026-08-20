@@ -1,0 +1,13 @@
+# imagePullPolicy: Never means "use the node's cache or fail".
+# This image is not on the node, so it fails immediately with ErrImageNeverPull
+# rather than after a registry round trip -- a distinct status worth recognising.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: never-pull
+  namespace: cka17
+spec:
+  containers:
+    - name: app
+      image: nginx:1.25-alpine-does-not-exist
+      imagePullPolicy: Never

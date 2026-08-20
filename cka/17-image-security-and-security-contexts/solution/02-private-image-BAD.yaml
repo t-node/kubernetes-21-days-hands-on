@@ -1,0 +1,11 @@
+# DELIBERATELY FAILS. There is no such registry, and no credentials.
+# Expected: ErrImagePull -> ImagePullBackOff, with the reason in the events.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: needs-credentials
+  namespace: cka17
+spec:
+  containers:
+    - name: app
+      image: registry.internal.example:5000/team/app:1.4

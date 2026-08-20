@@ -1,0 +1,15 @@
+# The same policy, satisfied: name a non-zero UID so runAsNonRoot has something
+# to approve.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nonroot-works
+  namespace: cka17
+spec:
+  containers:
+    - name: app
+      image: busybox:1.36
+      command: ["sh", "-c", "id; sleep 3600"]
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000

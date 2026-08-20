@@ -644,4 +644,4 @@ echo "$TOKEN" | cut -d. -f2 | base64 -d 2>/dev/null | jq
 ---
 
 **Previous:** [CKA 15 — Certificates API and Authorization Modes](../15-certificates-api-and-authorization/)
-**Next: CKA 17 — Image Security and Security Contexts** *(not yet built — see [CURRICULUM.md](../CURRICULUM.md))*
+**Next:** [CKA 17 — Image Security and Security Contexts](../17-image-security-and-security-contexts/)

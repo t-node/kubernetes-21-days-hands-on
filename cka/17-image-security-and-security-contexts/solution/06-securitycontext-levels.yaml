@@ -1,0 +1,32 @@
+# Pod-level securityContext with a container-level override.
+#
+#   web     -> runs as 1002 (container wins)
+#   sidecar -> runs as 1001 (inherits the pod)
+#
+# Both inherit fsGroup 2000, because fsGroup exists ONLY at the pod level.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: multi-context
+  namespace: cka17
+spec:
+  securityContext:
+    runAsUser: 1001
+    runAsGroup: 3000
+    fsGroup: 2000
+  volumes:
+    - name: scratch
+      emptyDir: {}
+  containers:
+    - name: web
+      image: busybox:1.36
+      command: ["sh", "-c", "id; ls -ld /data; sleep 3600"]
+      securityContext:
+        runAsUser: 1002          # <- overrides the pod's 1001
+      volumeMounts:
+        - {name: scratch, mountPath: /data}
+    - name: sidecar
+      image: busybox:1.36
+      command: ["sh", "-c", "id; sleep 3600"]
+      volumeMounts:
+        - {name: scratch, mountPath: /data}
