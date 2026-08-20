@@ -1,0 +1,48 @@
+# Three replicas behind a ClusterIP. Each pod serves its own name, so the
+# distribution across endpoints is observable from a client.
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  namespace: cka23
+  labels: {app: web}
+spec:
+  replicas: 3
+  selector:
+    matchLabels: {app: web}
+  template:
+    metadata:
+      labels: {app: web}
+    spec:
+      containers:
+        - name: web
+          image: nginx:1.27-alpine
+          ports:
+            - containerPort: 80
+          # Serve the pod's own name so responses are distinguishable.
+          command:
+            - sh
+            - -c
+            - |
+              echo "$MY_POD_NAME" > /usr/share/nginx/html/index.html
+              exec nginx -g 'daemon off;'
+          env:
+            - name: MY_POD_NAME
+              valueFrom:
+                fieldRef: {fieldPath: metadata.name}
+          readinessProbe:
+            httpGet: {path: /, port: 80}
+            periodSeconds: 3
+          resources:
+            requests: {cpu: "10m", memory: "16Mi"}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web
+  namespace: cka23
+spec:
+  selector: {app: web}
+  ports:
+    - {name: http, port: 80, targetPort: 80}

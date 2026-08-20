@@ -1,0 +1,15 @@
+# The same three pods, with client-IP stickiness. Compare the iptables rules
+# for this Service against those for `web` -- the `recent` module appears.
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-sticky
+  namespace: cka23
+spec:
+  selector: {app: web}
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 600
+  ports:
+    - {port: 80, targetPort: 80}

@@ -1,0 +1,12 @@
+# clusterIP: None. No virtual IP, therefore NOTHING for kube-proxy to write.
+# DNS returns one A record per ready endpoint instead (23.9).
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-headless
+  namespace: cka23
+spec:
+  clusterIP: None
+  selector: {app: web}
+  ports:
+    - {port: 80, targetPort: 80}

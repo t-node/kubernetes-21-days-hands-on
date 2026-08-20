@@ -627,4 +627,4 @@ CNI_PATH=/opt/cni/bin /opt/cni/bin/bridge < conf.json
 ---
 
 **Previous:** [CKA 21 — Linux Networking Foundations](../21-linux-networking-foundations/)
-**Next: CKA 23 — Service Networking** *(not yet built — see [CURRICULUM.md](../CURRICULUM.md))*
+**Next:** [CKA 23 — Service Networking](../23-service-networking/)

@@ -27,7 +27,7 @@ column back into the 21 days when you need ground under a topic.
 ---
 ## The assignments
 
-33 assignments. **22 built, 11 to build.**
+33 assignments. **23 built, 10 to build.**
 
 
 ### Core Concepts
@@ -86,7 +86,7 @@ column back into the 21 days when you need ground under a topic.
 |---|---|---|---|---|
 | 21 | [Linux Networking Foundations](21-linux-networking-foundations/) | 202, 203, 204, 206, 208 | none | **built** |
 | 22 | [Pod Networking and CNI](22-pod-networking-and-cni/) | 209, 210, 213, 214, 215, 217, 219, 220 | CKA 21 | **built** |
-| 23 | Service Networking | 222, 224 | Day 06, CKA 22 | to build |
+| 23 | [Service Networking](23-service-networking/) | 222, 224 | Day 06, CKA 22 | **built** |
 | 24 | DNS and CoreDNS | 225, 226, 228 | Day 06 | to build |
 | 25 | Ingress and the Gateway API in Depth | 229, 233, 235, 236 | Day 20 | to build |
 

@@ -1,0 +1,27 @@
+# Two NodePorts onto the same pods, differing only in externalTrafficPolicy.
+# Hit both from outside and compare which node answers and what source address
+# the backend logs (23.7).
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-np-cluster
+  namespace: cka23
+spec:
+  type: NodePort
+  externalTrafficPolicy: Cluster       # the default: any node answers, client IP lost
+  selector: {app: web}
+  ports:
+    - {port: 80, targetPort: 80, nodePort: 30080}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-np-local
+  namespace: cka23
+spec:
+  type: NodePort
+  externalTrafficPolicy: Local         # only nodes running a pod answer; client IP kept
+  selector: {app: web}
+  ports:
+    - {port: 80, targetPort: 80, nodePort: 30081}
