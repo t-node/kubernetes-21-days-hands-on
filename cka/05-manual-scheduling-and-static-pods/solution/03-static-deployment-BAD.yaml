@@ -1,0 +1,27 @@
+# DELIBERATELY WRONG -- a Deployment placed in the static pod directory.
+#
+# NOTHING HAPPENS. No pod, no deployment, no error in kubectl.
+#
+# The kubelet understands Pods and nothing else. Deployments, ReplicaSets,
+# Services and Jobs all exist because a CONTROLLER in the control plane
+# reconciles them -- and static pods exist precisely for the case where there is
+# no control plane yet.
+#
+# This is why the four files in /etc/kubernetes/manifests are all `kind: Pod`.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: static-deploy
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: static-deploy
+  template:
+    metadata:
+      labels:
+        app: static-deploy
+    spec:
+      containers:
+        - name: web
+          image: nginx:1.27-alpine

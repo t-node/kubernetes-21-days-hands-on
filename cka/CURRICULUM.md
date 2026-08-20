@@ -2,11 +2,14 @@
 
 Every lecture in the 312-lecture source course, mapped to an assignment.
 
-**200 lectures have transcript content. All 200 are mapped. Nothing is unaccounted for.**
+**200 lectures carry transcript content. All 200 are mapped. Nothing is unaccounted for.**
 
-The order below is the order to work through them: each assignment assumes the
-ones before it. Where a topic is already taught in the 21-day track, the
+The order below is the order to work through them: each assignment assumes
+the ones before it. Where a topic is already taught in the 21-day track, the
 assignment says so and links there rather than repeating it.
+
+Reference for the source course:
+[kodekloudhub/certified-kubernetes-administrator-course](https://github.com/kodekloudhub/certified-kubernetes-administrator-course)
 
 ---
 ## How the two tracks fit together
@@ -14,17 +17,17 @@ assignment says so and links there rather than repeating it.
 | | **21 Days** | **CKA assignments** |
 |---|---|---|
 | Teaches | deploying and operating an app | building and repairing the cluster |
-| Shape | a single app, evolved daily | topic-by-topic, exam-shaped |
+| Shape | one app, evolved daily | topic-by-topic, exam-shaped |
 | Start here if | you are new to Kubernetes | you can already deploy an app |
 
-**Recommended path:** Days 01-21 first, then CKA 01-33 in order. If you
-already deploy to Kubernetes at work, start at CKA 01 and follow the
-*Builds on* column back into the 21 days when you need ground under a topic.
+**Recommended path:** Days 01-21, then CKA 01-33 in order. If you already
+deploy to Kubernetes at work, start at CKA 01 and follow the *Builds on*
+column back into the 21 days when you need ground under a topic.
 
 ---
 ## The assignments
 
-33 assignments. **7 built, 26 to build.**
+33 assignments. **9 built, 24 to build.**
 
 
 ### Core Concepts
@@ -34,13 +37,13 @@ already deploy to Kubernetes at work, start at CKA 01 and follow the
 | 01 | [Control Plane Components in Depth](01-control-plane-components/) | 14, 15, 16, 17 | Day 01 | **built** |
 | 02 | [Container Runtimes: CRI, OCI, crictl](02-container-runtimes-and-crictl/) | 8, 9 | Day 01 | **built** |
 | 03 | [etcd and Cluster Data](03-etcd-and-cluster-data/) | 10, 11, 12 | CKA 02 | **built** |
-| 04 | Imperative vs Declarative, and kubectl apply | 41, 43, 45, 46, 48 | Day 02 | to build |
+| 04 | [Imperative vs Declarative, and kubectl apply](04-imperative-declarative-and-apply/) | 41, 43, 45, 46, 48 | Day 02 | **built** |
 
 ### Scheduling
 
 | # | Assignment | Lectures | Builds on | Status |
 |---|---|---|---|---|
-| 05 | Manual Scheduling and Static Pods | 50, 51, 53, 72, 74 | Day 18 | to build |
+| 05 | [Manual Scheduling and Static Pods](05-manual-scheduling-and-static-pods/) | 50, 51, 53, 72, 74 | Day 18 | **built** |
 | 06 | Priority Classes, Multiple Schedulers, Profiles | 75, 77, 79, 80 | CKA 05 | to build |
 | 07 | Admission Controllers | 81, 83, 84, 86 | CKA 15 | to build |
 

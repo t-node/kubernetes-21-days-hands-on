@@ -1,0 +1,33 @@
+# Generated with:
+#   kubectl create deployment web --image=nginx:1.27-alpine --replicas=3 \
+#     --dry-run=client -o yaml
+# then trimmed of the null creationTimestamp / status noise the generator emits.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  namespace: cka04
+  labels:
+    app: web
+spec:
+  # NOTE: if an HPA manages this Deployment, DELETE this field. Anything present
+  # here enters the last-applied annotation, so every `apply` re-enforces it and
+  # fights the autoscaler. See Break It D.
+  replicas: 3
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.27-alpine
+          ports:
+            - containerPort: 80
+              name: http
+          resources:
+            requests: { cpu: 50m, memory: 32Mi }
+            limits:   { cpu: 200m, memory: 128Mi }

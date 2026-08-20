@@ -1,0 +1,21 @@
+# Manual scheduling, method 1: write spec.nodeName yourself.
+#
+# This is EXACTLY what the scheduler would have written. The kubelet on
+# devops-worker watches for pods bearing its own name and starts this one --
+# with no scheduler involved at all.
+#
+# nodeName BYPASSES filtering, scoring, taints and resource checks. If the node
+# cannot fit the pod, the kubelet rejects it (OutOfcpu) and NOTHING reschedules
+# it. Debugging tool only.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: manual-nodename
+  namespace: cka05
+spec:
+  nodeName: devops-worker      # the scheduler's entire contribution, by hand
+  containers:
+    - name: nginx
+      image: nginx:1.27-alpine
+      resources:
+        requests: { cpu: 10m, memory: 16Mi }

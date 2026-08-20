@@ -1,0 +1,28 @@
+# A static pod. Copy it into the kubelet's staticPodPath:
+#
+#   docker cp 02-static-web.yaml devops-control-plane:/etc/kubernetes/manifests/static-web.yaml
+#
+# The kubelet will:
+#   - create the pod within ~20s
+#   - restart the container if it dies
+#   - RECREATE the pod if you edit this file
+#   - DELETE the pod if you remove the file
+#
+# The mirror pod in the API server is named  static-web-<nodename>  and is
+# READ-ONLY. `kubectl delete` on it removes only the mirror; the kubelet brings
+# it straight back. Removing the file is the only real delete.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: static-web
+  labels:
+    role: static-demo
+spec:
+  containers:
+    - name: web
+      image: nginx:1.27-alpine
+      ports:
+        - containerPort: 80
+      resources:
+        requests: { cpu: 10m, memory: 16Mi }
+        limits:   { cpu: 100m, memory: 64Mi }

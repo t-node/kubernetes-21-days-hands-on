@@ -1,0 +1,6 @@
+{
+  "apiVersion": "v1",
+  "kind": "Binding",
+  "metadata": { "name": "stranded" },
+  "target": { "apiVersion": "v1", "kind": "Node", "name": "devops-worker" }
+}
