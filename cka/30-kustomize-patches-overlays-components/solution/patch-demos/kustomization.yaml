@@ -1,0 +1,40 @@
+# Every patch form in one place, so `kubectl kustomize .` shows all of them at
+# once and each can be commented out to isolate it.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../base
+
+patches:
+  # 1. strategic merge, from a FILE -- target is taken from the patch itself
+  - path: 01-strategic-merge.yaml
+
+  # 2. add a container to `api`
+  - path: 02-add-container.yaml
+
+  # 3. delete a container from `api` -- runs after 2, on the merged result
+  - path: 03-delete-container.yaml
+
+  # 4. JSON 6902, from a file. It NEEDS an explicit target: the file is a list
+  #    of operations and contains no kind or name (30.2).
+  - path: 05-json6902.yaml
+    target:
+      kind: Deployment
+      name: web
+
+  # 5. strategic merge, INLINE, aimed at several objects at once by label.
+  #    `name` would also work and is a regex (30.3).
+  - target:
+      kind: Deployment
+      labelSelector: "tier in (frontend,backend)"
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: ignored-because-target-wins
+      spec:
+        template:
+          metadata:
+            annotations:
+              patched-by-label-selector: "yes"

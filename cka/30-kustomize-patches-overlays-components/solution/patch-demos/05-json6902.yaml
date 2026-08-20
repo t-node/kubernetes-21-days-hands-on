@@ -1,0 +1,27 @@
+# A JSON 6902 PATCH: a list of operations, not a manifest (30.6).
+#
+# Note what it can do that a strategic merge cannot: address a list element by
+# INDEX, and append with `-`.
+- op: replace
+  path: /spec/replicas
+  value: 4
+
+# `-` appends. /env/0 would REPLACE the first element instead.
+- op: add
+  path: /spec/template/spec/containers/0/env/-
+  value:
+    name: ADDED_BY_JSON6902
+    value: "true"
+
+# Remove the second container by position. Fragile by nature: it removes
+# whatever is at index 1 today.
+- op: remove
+  path: /spec/template/spec/containers/1
+
+# ~1 escapes a `/` in a key. Annotation keys almost always contain one.
+- op: add
+  path: /metadata/annotations
+  value: {}
+- op: add
+  path: /metadata/annotations/example.com~1patched-by
+  value: json6902

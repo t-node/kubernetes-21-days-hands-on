@@ -1,0 +1,13 @@
+# $patch: delete removes a LIST ELEMENT. Omitting an element means "leave it
+# alone", so there is no other way to express deletion in a strategic merge
+# patch (30.5).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+spec:
+  template:
+    spec:
+      containers:
+        - name: legacy-sidecar
+          $patch: delete

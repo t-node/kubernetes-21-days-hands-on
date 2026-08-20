@@ -1,0 +1,15 @@
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+configMapGenerator:
+  - name: monitoring-config
+    literals:
+      - SCRAPE_INTERVAL=15s
+
+patches:
+  # `name: ".*"` with a kind matches EVERY Deployment the overlay has pulled in
+  # -- including any added by a component listed before this one (30.3, 30.8).
+  - path: add-metrics-sidecar.yaml
+    target:
+      kind: Deployment
+      name: ".*"

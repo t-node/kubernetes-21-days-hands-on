@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  labels: {app: web, tier: frontend}
+spec:
+  replicas: 2
+  selector:
+    matchLabels: {app: web}
+  template:
+    metadata:
+      labels: {app: web, tier: frontend}
+    spec:
+      containers:
+        - name: web
+          image: nginx:1.27-alpine
+          ports:
+            - {name: http, containerPort: 80}
+          env:
+            - {name: API_URL, value: "http://api:80"}
+          resources:
+            requests: {cpu: 10m, memory: 16Mi}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web
+  labels: {app: web, tier: frontend}
+spec:
+  selector: {app: web}
+  ports: [{name: http, port: 80, targetPort: http}]

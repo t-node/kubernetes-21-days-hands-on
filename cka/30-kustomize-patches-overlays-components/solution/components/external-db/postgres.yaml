@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  labels: {app: postgres, tier: data}
+spec:
+  replicas: 1
+  selector:
+    matchLabels: {app: postgres}
+  template:
+    metadata:
+      labels: {app: postgres, tier: data}
+    spec:
+      containers:
+        - name: postgres
+          image: nginx:1.27-alpine        # stands in for postgres:16
+          ports: [{name: pg, containerPort: 80}]
+          resources:
+            requests: {cpu: 10m, memory: 16Mi}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  labels: {app: postgres, tier: data}
+spec:
+  selector: {app: postgres}
+  ports: [{name: pg, port: 5432, targetPort: pg}]

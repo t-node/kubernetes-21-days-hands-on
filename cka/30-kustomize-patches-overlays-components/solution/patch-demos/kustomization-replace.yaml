@@ -1,0 +1,11 @@
+# Not used by patch-demos/kustomization.yaml -- kept as a separate file because
+# $patch: replace and the add/delete demos would fight over the same list.
+#
+# Try it with:
+#   cp kustomization-replace.yaml kustomization.yaml   (in a copy of this dir)
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - ../base
+patches:
+  - path: 04-replace-list.yaml

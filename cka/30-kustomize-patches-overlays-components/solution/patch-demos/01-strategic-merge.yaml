@@ -1,0 +1,22 @@
+# A STRATEGIC MERGE PATCH. It looks like the object it patches, and everything
+# not mentioned is left alone (30.1).
+#
+# kind + metadata.name identify the target; they are not applied.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+spec:
+  replicas: 5
+  template:
+    spec:
+      containers:
+        # The name MATCHES an existing container, so this MODIFIES it rather
+        # than adding one -- containers merge by `name` (30.5).
+        - name: web
+          image: nginx:1.28-alpine
+          env:
+            # env merges by `name` too: API_URL is replaced, EXTRA is added,
+            # and any other existing variable survives.
+            - {name: API_URL, value: "http://api.prod:80"}
+            - {name: EXTRA, value: "added-by-patch"}

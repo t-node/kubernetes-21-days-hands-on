@@ -1,0 +1,12 @@
+# prod does not run the legacy sidecar the base ships. The only way to remove a
+# list element with a strategic merge patch (30.5).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+spec:
+  template:
+    spec:
+      containers:
+        - name: legacy-sidecar
+          $patch: delete

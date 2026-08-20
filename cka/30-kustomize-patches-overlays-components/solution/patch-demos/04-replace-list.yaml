@@ -1,0 +1,18 @@
+# $patch: replace discards the base's whole list rather than merging into it.
+# After this, `api` has exactly ONE container regardless of what the base had.
+#
+# Use it when you want to be certain of the final contents; use plain merging
+# when you want the base to keep evolving underneath you.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+spec:
+  template:
+    spec:
+      containers:
+        - $patch: replace
+        - name: only-this-one
+          image: nginx:1.27-alpine
+          ports:
+            - {name: http, containerPort: 80}

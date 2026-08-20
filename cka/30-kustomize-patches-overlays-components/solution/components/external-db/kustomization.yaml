@@ -1,0 +1,19 @@
+# A COMPONENT -- note the apiVersion and kind, which differ from a
+# Kustomization. Using kind: Kustomization here is the usual first mistake
+# (30.8).
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+resources:
+  - postgres.yaml
+
+secretGenerator:
+  - name: db-creds
+    literals:
+      - password=changeme-in-a-real-cluster
+
+patches:
+  - path: add-db-env.yaml
+    target:
+      kind: Deployment
+      name: api

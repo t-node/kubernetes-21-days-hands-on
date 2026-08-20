@@ -690,4 +690,4 @@ resources:
 ---
 
 **Previous:** [CKA 28 — Helm](../28-helm/)
-**Next: CKA 30 — Kustomize: Patches, Overlays and Components** *(not yet built — see [CURRICULUM.md](../CURRICULUM.md))*
+**Next:** [CKA 30 — Kustomize: Patches, Overlays and Components](../30-kustomize-patches-overlays-components/)

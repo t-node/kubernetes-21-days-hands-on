@@ -1,0 +1,20 @@
+# An overlay is just a kustomization whose `resources` is a base (30.7).
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: cka30-dev
+namePrefix: dev-
+
+resources:
+  - ../../base
+
+# dev opts IN to the external database and NOT to monitoring (30.8).
+components:
+  - ../../components/external-db
+
+patches:
+  - path: replicas-patch.yaml
+
+images:
+  - name: nginx
+    newTag: "1.27-alpine"

@@ -1,0 +1,19 @@
+# The part that makes this a FEATURE rather than a bundle of files: it patches
+# the BASE so the api knows the database exists (30.8).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+spec:
+  template:
+    spec:
+      containers:
+        - name: api
+          env:
+            - {name: DB_HOST, value: "postgres"}
+            - {name: DB_PORT, value: "5432"}
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-creds
+                  key: password
