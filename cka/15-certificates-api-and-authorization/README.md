@@ -603,4 +603,7 @@ not `Unauthorized`.
 
 ---
 
+**Previous:** [CKA 14 — KubeConfig and the API](../14-kubeconfig-and-the-api/)
+**Next: CKA 16 — Service Accounts** *(not yet built — see [CURRICULUM.md](../CURRICULUM.md))*
+
 **Back to the [CKA track](../) · [Main course](../../README.md)**

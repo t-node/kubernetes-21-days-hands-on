@@ -566,4 +566,5 @@ curl -s --cert c.crt --key c.key --cacert ca.crt https://SERVER:6443/apis
 
 ---
 
-**Next: [CKA 05 — Certificates API and authorization modes](../15-certificates-api-and-authorization/)**
+**Previous:** [CKA 13 — TLS in Kubernetes](../13-tls-in-kubernetes/)
+**Next:** [CKA 15 — Certificates API and Authorization Modes](../15-certificates-api-and-authorization/)
