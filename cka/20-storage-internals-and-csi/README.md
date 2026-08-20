@@ -754,4 +754,4 @@ kubectl patch pvc NAME -p '{"spec":{"resources":{"requests":{"storage":"20Gi"}}}
 ---
 
 **Previous:** [CKA 19 — Custom Resources, Controllers and Operators](../19-crds-controllers-operators/)
-**Next: CKA 21 — Linux Networking Foundations** *(not yet built — see [CURRICULUM.md](../CURRICULUM.md))*
+**Next:** [CKA 21 — Linux Networking Foundations](../21-linux-networking-foundations/)
